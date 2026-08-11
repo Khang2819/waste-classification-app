@@ -1,103 +1,149 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
-class SplashScreen extends StatelessWidget {
+import '../features/auth/presentation/bloc/auth_bloc.dart';
+
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF0F392B), Color(0xFF1B5E20), Color(0xFF2E7D32)],
-          ),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              top: -80,
-              right: -80,
-              child: Container(
-                width: 250,
-                height: 250,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.05),
-                ),
-              ),
-            ),
+  State<SplashScreen> createState() => _SplashScreenState();
+}
 
-            Positioned(
-              bottom: -80,
-              left: -80,
-              child: Container(
-                width: 300,
-                height: 300,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.05),
+class _SplashScreenState extends State<SplashScreen> {
+  bool _minSplashDurationPassed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  Future<void> _startTimer() async {
+    // Keep splash screen visible for at least 2 seconds
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+
+    setState(() {
+      _minSplashDurationPassed = true;
+    });
+
+    final currentAuthState = context.read<AuthBloc>().state;
+    _checkAndNavigate(currentAuthState);
+  }
+
+  void _checkAndNavigate(AuthState state) {
+    // Only perform navigation after the minimum 2-second splash timer has elapsed
+    if (!_minSplashDurationPassed) return;
+
+    if (state is AuthAuthenticated) {
+      context.go('/home');
+    } else if (state is AuthUnauthenticated) {
+      context.go('/login');
+    }
+    // If state is AuthInitial or AuthUnknown, wait until AuthBloc resolves to Authenticated or Unauthenticated
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        _checkAndNavigate(state);
+      },
+      child: Scaffold(
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF0F392B), Color(0xFF1B5E20), Color(0xFF2E7D32)],
+            ),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                top: -80,
+                right: -80,
+                child: Container(
+                  width: 250,
+                  height: 250,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.05),
+                  ),
                 ),
               ),
-            ),
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withValues(alpha: 0.15),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.13),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.recycling_rounded,
-                      size: 80,
-                      color: Color(0xFF81C784),
-                    ),
+              Positioned(
+                bottom: -80,
+                left: -80,
+                child: Container(
+                  width: 300,
+                  height: 300,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.05),
                   ),
-                  const SizedBox(height: 32),
-                  const Text(
-                    'SmartWaste',
-                    style: TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 40),
-                    child: Text(
-                      'Giải pháp phân loại & quản lý rác thải thông minh',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white.withValues(alpha: 0.80),
-                        height: 1.4,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 0.15),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.13),
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.recycling_rounded,
+                        size: 80,
+                        color: Color(0xFF81C784),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    const Text(
+                      'SmartWaste',
+                      style: TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      child: Text(
+                        'Giải pháp phân loại & quản lý rác thải thông minh',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white.withValues(alpha: 0.80),
+                          height: 1.4,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

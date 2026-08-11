@@ -1,0 +1,25 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "waste-classification-app-42409",
+          "appId": "1:462270066245:android:78135b45d91ed7a354fd2c",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "waste-classification-app-42409",
+          "configurations": {
+            "android": "1:462270066245:android:78135b45d91ed7a354fd2c",
+            "ios": "1:462270066245:ios:623bd27fd319171054fd2c",
+            "macos": "1:462270066245:ios:623bd27fd319171054fd2c",
+            "web": "1:462270066245:web:32c4624ca416b81a54fd2c",
+            "windows": "1:462270066245:web:0685ee40326d41c854fd2c"
+          }
+        }
+      }
+    }
+  }
+}
