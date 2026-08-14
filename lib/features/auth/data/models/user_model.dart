@@ -30,8 +30,4 @@ class UserModel extends User {
   Map<String, dynamic> toJson() {
     return {'id': id, 'full_name': fullName, 'email': email, 'avatar': avatar};
   }
-
-  User toEntity() {
-    return User(id: id, fullName: fullName, email: email, avatar: avatar);
-  }
 }

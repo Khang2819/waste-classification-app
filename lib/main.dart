@@ -1,34 +1,27 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:waste_classification_app/core/di/injection.dart';
+import 'package:waste_classification_app/features/auth/presentation/cubit/login/login_cubit.dart';
 import 'package:waste_classification_app/firebase_options.dart';
 import 'package:waste_classification_app/routers/app_router.dart';
 
-import 'features/auth/data/datasources/auth_remote_data_source.dart';
-import 'features/auth/data/repositories/auth_repository_impl.dart';
-import 'features/auth/domain/usecases/get_current_user_usecase.dart';
-import 'features/auth/domain/usecases/logout_usecase.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/auth/presentation/cubit/register/register_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  final authRepository = AuthRepositoryImpl(
-    remoteDataSource: AuthRemoteDataSourceImpl(),
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  init();
 
   runApp(
     MultiBlocProvider(
       providers: [
         BlocProvider<AuthBloc>(
-          create: (context) => AuthBloc(
-            getCurrentUserUseCase: GetCurrentUserUseCase(authRepository),
-            logoutUseCase: LogoutUseCase(authRepository),
-          )..add(AppStarted()),
+          create: (context) => getIt<AuthBloc>()..add(AppStarted()),
         ),
+        BlocProvider(create: (_) => getIt<LoginCubit>()),
+        BlocProvider(create: (_) => getIt<RegisterCubit>()),
       ],
       child: const MyApp(),
     ),
@@ -50,7 +43,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      routerConfig: AppRouter.router,
+      routerConfig: AppRouter.createRouter(context.read<AuthBloc>()),
     );
   }
 }

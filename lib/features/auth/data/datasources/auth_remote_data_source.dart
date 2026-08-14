@@ -55,8 +55,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (firebaseUser == null) {
         throw Exception('Không tìm thấy thông tin người dùng.');
       }
-
-      // Try fetching Firestore profile with short timeout, fallback to FirebaseUser if Firestore hangs/fails
       try {
         final userDoc = await firestore
             .collection('users')

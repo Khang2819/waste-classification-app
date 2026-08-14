@@ -25,11 +25,8 @@ class HomeScreen extends StatelessWidget {
                     ),
                     child: CircleAvatar(
                       radius: 22,
-                      backgroundColor: Color(0xFFE8F5E9),
-                      child: Icon(
-                        Icons.person_rounded,
-                        color: Color(0xFF2E7D32),
-                        size: 28,
+                      backgroundImage: NetworkImage(
+                        "https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-anime-dang-yeu-khong-the-cuong-duoc-2.jpg",
                       ),
                     ),
                   ),

@@ -16,7 +16,7 @@ class AuthRepositoryImpl implements AuthRepository {
       email: email,
       password: password,
     );
-    return userModel.toEntity();
+    return userModel;
   }
 
   @override
@@ -30,7 +30,7 @@ class AuthRepositoryImpl implements AuthRepository {
       password: password,
       fullName: fullName,
     );
-    return userModel.toEntity();
+    return userModel;
   }
 
   @override
@@ -45,8 +45,6 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Stream<User?> getCurrentUser() {
-    return remoteDataSource.getCurrentUser().map(
-      (userModel) => userModel?.toEntity(),
-    );
+    return remoteDataSource.getCurrentUser();
   }
 }
