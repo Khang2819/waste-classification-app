@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:waste_classification_app/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:waste_classification_app/features/main/main_screen.dart';
-import 'package:waste_classification_app/screens/splash_screen.dart';
 
 import '../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/auth/presentation/screens/register_screen.dart';
+import '../features/main/screen/main_screen.dart';
+import '../features/splash/splash_screen.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream stream) {

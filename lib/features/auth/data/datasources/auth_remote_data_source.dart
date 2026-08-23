@@ -65,9 +65,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         if (userDoc.exists && userDoc.data() != null) {
           return UserModel.fromJson(userDoc.data()!);
         }
-      } catch (_) {
-        // Fallback gracefully if Firestore is slow or not configured
-      }
+      } catch (_) {}
 
       return UserModel.fromFirebase(firebaseUser);
     } on FirebaseAuthException catch (e) {
@@ -163,17 +161,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         email: email,
         avatar: firebaseUser.photoURL,
       );
-
-      // Save user to Firestore with short timeout, don't block registration if Firestore fails
       try {
         await firestore
             .collection('users')
             .doc(userModel.id)
             .set(userModel.toJson())
             .timeout(const Duration(seconds: 4));
-      } catch (_) {
-        // Suppress Firestore write failure to avoid blocking user creation
-      }
+      } catch (_) {}
 
       return userModel;
     } on FirebaseAuthException catch (e) {
@@ -186,6 +180,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> logout() async {
     try {
+      await GoogleSignIn().signOut();
       await firebaseAuth.signOut();
     } catch (e) {
       throw Exception('Không thể đăng xuất: $e');

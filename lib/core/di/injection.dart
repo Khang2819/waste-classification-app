@@ -3,7 +3,6 @@ import 'package:waste_classification_app/features/auth/data/datasources/auth_rem
 import 'package:waste_classification_app/features/auth/domain/usecases/login_usecase.dart';
 import 'package:waste_classification_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:waste_classification_app/features/auth/presentation/cubit/login/login_cubit.dart';
-import 'package:waste_classification_app/features/auth/presentation/cubit/register/register_cubit.dart';
 
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
@@ -11,6 +10,7 @@ import '../../features/auth/domain/usecases/get_current_user_usecase.dart';
 import '../../features/auth/domain/usecases/google_usecase.dart';
 import '../../features/auth/domain/usecases/logout_usecase.dart';
 import '../../features/auth/domain/usecases/register_usecase.dart';
+import '../../features/auth/presentation/cubit/register/register_cubit.dart';
 
 final getIt = GetIt.instance;
 
