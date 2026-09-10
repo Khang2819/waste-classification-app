@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:waste_classification_app/core/di/injection.dart';
 import 'package:waste_classification_app/features/auth/presentation/cubit/login/login_cubit.dart';
 import 'package:waste_classification_app/firebase_options.dart';
@@ -8,11 +9,13 @@ import 'package:waste_classification_app/routers/app_router.dart';
 
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/cubit/register/register_cubit.dart';
+import 'features/scan/presentation/cubit/scan_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  init();
+  await init();
 
   runApp(
     MultiBlocProvider(
@@ -22,6 +25,7 @@ void main() async {
         ),
         BlocProvider(create: (_) => getIt<LoginCubit>()),
         BlocProvider(create: (_) => getIt<RegisterCubit>()),
+        BlocProvider(create: (_) => getIt<ScanCubit>()),
       ],
       child: const MyApp(),
     ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -204,7 +205,9 @@ class HomeScreen extends StatelessWidget {
                           ],
                         ),
                         GestureDetector(
-                          onTap: () {},
+                          onTap: () {
+                            context.go('/redeem');
+                          },
                           child: Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(

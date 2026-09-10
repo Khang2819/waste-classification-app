@@ -12,6 +12,12 @@ import '../../features/auth/domain/usecases/logout_usecase.dart';
 import '../../features/auth/domain/usecases/register_usecase.dart';
 import '../../features/auth/presentation/cubit/register/register_cubit.dart';
 
+import '../../features/scan/data/datasources/scan_remote_data_sources.dart';
+import '../../features/scan/data/repositories/scan_repository_impl.dart';
+import '../../features/scan/domain/repositories/scan_repository.dart';
+import '../../features/scan/domain/usecases/scan_waste.dart';
+import '../../features/scan/presentation/cubit/scan_cubit.dart';
+
 final getIt = GetIt.instance;
 
 Future<void> init() async {
@@ -25,6 +31,7 @@ Future<void> init() async {
     () => LoginCubit(loginUseCase: getIt(), googleUsecase: getIt()),
   );
   getIt.registerFactory(() => RegisterCubit(registerUseCase: getIt()));
+  getIt.registerFactory(() => ScanCubit(scanWasteUseCase: getIt()));
 
   getIt.registerFactory(() => GetCurrentUserUseCase(getIt()));
   getIt.registerFactory(() => LogoutUseCase(getIt()));
@@ -33,13 +40,21 @@ Future<void> init() async {
   getIt.registerLazySingleton(() => LoginUseCase(getIt()));
   getIt.registerLazySingleton(() => RegisterUseCase(getIt()));
   getIt.registerLazySingleton(() => GoogleUsecase(getIt()));
+  getIt.registerLazySingleton(() => ScanWaste(getIt()));
 
   //Repository
   getIt.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(remoteDataSource: getIt()),
   );
+  getIt.registerLazySingleton<ScanRepository>(
+    () => ScanRepositoryImpl(remoteDataSource: getIt()),
+  );
+
   // data
   getIt.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(),
+  );
+  getIt.registerLazySingleton<ScanRemoteDataSource>(
+    () => ScanRemoteDataSourceImpl(),
   );
 }

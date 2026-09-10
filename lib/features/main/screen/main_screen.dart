@@ -1,59 +1,77 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:waste_classification_app/features/history/screen/history_screen.dart';
 import 'package:waste_classification_app/features/home/screens/home_screen.dart';
 
+import '../../map/map_screen.dart';
 import '../../profile/screen/person_screen.dart';
-import '../../scan_screen.dart';
+import '../../scan/presentation/screens/scan_screen.dart';
 import '../cubit/main_cubit.dart';
 
-class MainScreen extends StatefulWidget {
+class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
 
-  @override
-  State<MainScreen> createState() => _MainScreenState();
-}
-
-class _MainScreenState extends State<MainScreen> {
-  final List<Widget> _page = [
+  final List<Widget> _pages = const [
     HomeScreen(),
+    MapScreen(),
     ScanScreen(),
     HistoryScreen(),
     PersonScreen(),
   ];
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => MainCubit(),
-      child: BlocBuilder<MainCubit, int>(
-        builder: (context, state) {
-          return Scaffold(
-            body: _page[state],
-            bottomNavigationBar: BottomNavigationBar(
-              type: BottomNavigationBarType.fixed,
-              selectedItemColor: const Color(0xFF2E7D32),
-              unselectedItemColor: Colors.grey.shade500,
-              currentIndex: state,
-              onTap: (value) => context.read<MainCubit>().chage(value),
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home),
-                  label: 'Trang chủ',
+      create: (_) => MainCubit(),
+      child: Builder(
+        builder: (context) {
+          return BlocBuilder<MainCubit, int>(
+            builder: (context, currentIndex) {
+              return Scaffold(
+                body: IndexedStack(index: currentIndex, children: _pages),
+                bottomNavigationBar: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 8,
+                        offset: Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: SalomonBottomBar(
+                    currentIndex: currentIndex,
+                    onTap: (index) => context.read<MainCubit>().chage(index),
+                    selectedItemColor: const Color(0xFF2E7D32),
+                    unselectedItemColor: Colors.grey,
+                    items: [
+                      SalomonBottomBarItem(
+                        icon: const Icon(Icons.home),
+                        title: const Text('Trang chủ'),
+                      ),
+                      SalomonBottomBarItem(
+                        icon: const Icon(Icons.map_outlined),
+                        title: const Text('Map'),
+                      ),
+                      SalomonBottomBarItem(
+                        icon: const Icon(Icons.qr_code_scanner_rounded),
+                        title: const Text('Quét Rác'),
+                      ),
+                      SalomonBottomBarItem(
+                        icon: const Icon(Icons.history),
+                        title: const Text('Lịch sử'),
+                      ),
+                      SalomonBottomBarItem(
+                        icon: const Icon(Icons.person),
+                        title: const Text('Cá nhân'),
+                      ),
+                    ],
+                  ),
                 ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.qr_code_scanner_rounded),
-                  label: 'Quét rác',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.history),
-                  label: 'Lịch sử',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person),
-                  label: 'Cá nhân',
-                ),
-              ],
-            ),
+              );
+            },
           );
         },
       ),

@@ -61,7 +61,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   "Thành Tích Phân Loại Xanh",
                   style: TextStyle(
                     color: Colors.white,

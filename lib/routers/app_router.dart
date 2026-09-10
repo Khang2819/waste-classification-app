@@ -8,6 +8,10 @@ import '../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/auth/presentation/screens/register_screen.dart';
 import '../features/main/screen/main_screen.dart';
+import '../features/map/map_screen.dart';
+import '../features/reward/presentation/screen/redeem_screen.dart';
+import '../features/result_screen.dart';
+import '../features/scan/domain/entities/scan_entities.dart';
 import '../features/splash/splash_screen.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -62,11 +66,23 @@ class AppRouter {
           path: '/register',
           builder: (context, state) => const RegisterScreen(),
         ),
+        GoRoute(path: '/map', builder: (context, state) => const MapScreen()),
         GoRoute(
           path: '/forgot_password',
           builder: (context, state) => const ForgotPasswordScreen(),
         ),
-        GoRoute(path: '/main', builder: (context, state) => MainScreen()),
+        GoRoute(path: '/main', builder: (context, state) => const MainScreen()),
+        GoRoute(
+          path: '/result',
+          builder: (context, state) {
+            final scanResult = state.extra as ScanEntities?;
+            return ResultScreen(scanResult: scanResult);
+          },
+        ),
+        GoRoute(
+          path: '/redeem',
+          builder: (context, state) => const RedeemScreen(),
+        ),
       ],
     );
   }
