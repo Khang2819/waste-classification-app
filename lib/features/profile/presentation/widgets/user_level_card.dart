@@ -1,25 +1,20 @@
 import 'package:flutter/material.dart';
 
-class UserLevelCard extends StatelessWidget {
-  final int level;
-  final String title;
-  final double progressValue;
-  final int currentXp;
-  final int nextLevelXp;
-  final int targetXp;
+import '../../../../core/utils/level_calculator.dart';
 
-  const UserLevelCard({
-    super.key,
-    this.level = 5,
-    this.title = 'Chiến Binh Xanh',
-    this.progressValue = 0.8,
-    this.currentXp = 4000,
-    this.nextLevelXp = 550,
-    this.targetXp = 2000,
-  });
+class UserLevelCard extends StatelessWidget {
+  final int totalXp;
+
+  const UserLevelCard({super.key, required this.totalXp});
 
   @override
   Widget build(BuildContext context) {
+    final level = LevelCalculator.getLevel(totalXp);
+    final title = LevelCalculator.getTitle(level);
+    final progressValue = LevelCalculator.getProgress(totalXp);
+    final currentLevelXp = LevelCalculator.getCurrentLevelXp(totalXp);
+    final remainingXp = LevelCalculator.getRemainingXp(totalXp);
+    final targetXp = LevelCalculator.xpPerLevel;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -96,7 +91,7 @@ class UserLevelCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "$currentXp XP",
+                "$currentLevelXp / $targetXp XP",
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
@@ -104,7 +99,7 @@ class UserLevelCard extends StatelessWidget {
                 ),
               ),
               Text(
-                "Còn $nextLevelXp XP lên cấp ${level + 1}",
+                "Cần $remainingXp XP lên cấp ${level + 1}",
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
               ),
               Text(

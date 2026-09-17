@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ProfileAccountSection extends StatelessWidget {
-  const ProfileAccountSection({super.key});
+  final String title;
+  const ProfileAccountSection({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -46,10 +47,10 @@ class ProfileAccountSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(left: 4, top: 4, bottom: 8),
             child: Text(
-              "Tài khoản & Địa chỉ",
+              title,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,

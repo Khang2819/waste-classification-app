@@ -2,6 +2,8 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:waste_classification_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:waste_classification_app/features/history/presentation/cubit/history_cubit.dart';
 import '../cubit/scan_cubit.dart';
 import '../cubit/scan_state.dart';
 
@@ -47,8 +49,6 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
 
       _selectedCameraIndex = cameraIndex.clamp(0, _cameras.length - 1);
       final camera = _cameras[_selectedCameraIndex];
-
-      // Hủy camera cũ trước khi khởi tạo camera mới
       await _cameraController?.dispose();
 
       final controller = CameraController(
@@ -151,9 +151,19 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     return BlocConsumer<ScanCubit, ScanState>(
       listener: (context, state) {
         if (state is ScanSuccess) {
-          // Điều hướng sang màn hình kết quả và chuyển dữ liệu ScanEntities
+          final authState = context.read<AuthBloc>().state;
+          if (authState is AuthAuthenticated) {
+            context.read<HistoryCubit>().saveHistory(
+              userId: authState.user.id,
+              label: state.result.label,
+              instruction: state.result.instruction,
+              confidence: state.result.confidence,
+              imagePath: state.result.imagePath,
+              category: 'Quét AI',
+            );
+          }
+
           context.push('/result', extra: state.result).then((_) {
-            // Khi quay trở lại màn hình quét, reset trạng thái Cubit
             if (context.mounted) {
               context.read<ScanCubit>().reset();
             }
@@ -345,8 +355,6 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                   ),
                 ],
               ),
-
-              // Overlay trạng thái khi đang quét AI
               if (isLoading)
                 Container(
                   color: Colors.black.withValues(alpha: 0.65),

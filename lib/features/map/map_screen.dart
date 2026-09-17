@@ -98,7 +98,10 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Định tuyến & Thu gom rác"),
+        title: const Text(
+          "Bảng đồ thu gom rác",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: const Color(0xFF2E7D32),
         foregroundColor: Colors.white,
       ),
@@ -178,23 +181,38 @@ class _MapScreenState extends State<MapScreen> {
 
           // Nút chuyển đổi kiểu bản đồ
           Positioned(
-            top: 16,
-            right: 16,
-            child: FloatingActionButton.extended(
-              heroTag: 'toggle_map_mode',
-              backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF2E7D32),
+            bottom: 200,
+            right: 10,
+            child: Material(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
               elevation: 4,
-              onPressed: () {
-                setState(() => _isSatellite = !_isSatellite);
-              },
-              icon: Icon(
-                _isSatellite ? Icons.map_outlined : Icons.satellite_alt_rounded,
-                color: const Color(0xFF2E7D32),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () {
+                  setState(() => _isSatellite = !_isSatellite);
+                },
+                child: const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Icon(Icons.layers, color: Color(0xFF2E7D32)),
+                ),
               ),
-              label: Text(
-                _isSatellite ? "Đường phố" : "Vệ tinh",
-                style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          Positioned(
+            bottom: 130,
+            right: 10,
+            child: Material(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              elevation: 4,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () {},
+                child: const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Icon(Icons.my_location, color: Color(0xFF2E7D32)),
+                ),
               ),
             ),
           ),

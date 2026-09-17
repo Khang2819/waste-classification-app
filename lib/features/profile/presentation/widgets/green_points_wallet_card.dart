@@ -4,11 +4,14 @@ class GreenPointsWalletCard extends StatelessWidget {
   final int points;
   final VoidCallback? onRedeemTap;
 
-  const GreenPointsWalletCard({
-    super.key,
-    this.points = 1450,
-    this.onRedeemTap,
-  });
+  const GreenPointsWalletCard({super.key, this.points = 0, this.onRedeemTap});
+
+  String _formatNumber(int number) {
+    return number.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]},',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,13 +53,19 @@ class GreenPointsWalletCard extends StatelessWidget {
                     style: TextStyle(color: Colors.grey),
                   ),
                   const SizedBox(height: 5),
-                  Text(
-                    '$points điểm',
-                    style: const TextStyle(
-                      color: Color(0xFF1B5E20),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        _formatNumber(points),
+                        style: const TextStyle(
+                          color: Color(0xFF1B5E20),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Icon(Icons.eco_rounded, color: Colors.green),
+                    ],
                   ),
                 ],
               ),

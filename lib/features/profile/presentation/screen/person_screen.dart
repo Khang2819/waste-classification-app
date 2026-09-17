@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../auth/presentation/bloc/auth_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/utils/level_calculator.dart';
+import '../../domain/badge_entity.dart';
+import '../cubit/profile_cubit.dart';
+import '../cubit/profile_state.dart';
+import '../widgets/badges_bottom_sheet.dart';
 import '../widgets/green_points_wallet_card.dart';
 import '../widgets/logout_dialog.dart';
+import '../widgets/personal_qr_bottom_sheet.dart';
 import '../widgets/profile_account_section.dart';
 import '../widgets/profile_header.dart';
 import '../widgets/profile_quick_actions.dart';
@@ -13,38 +19,64 @@ class PersonScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, authState) {
-        final user = authState is AuthAuthenticated ? authState.user : null;
+    return BlocBuilder<ProfileCubit, ProfileState>(
+      builder: (context, profileState) {
+        final user = profileState is ProfileLoaded ? profileState.user : null;
         final avatarUrl =
-            (user?.avatar?.isNotEmpty ?? false)
-                ? user!.avatar!
-                : "https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-anime-dang-yeu-khong-the-cuong-duoc-2.jpg";
+            (user?.avatar?.isNotEmpty ?? false) ? user!.avatar! : null;
         final displayName =
             (user?.fullName.isNotEmpty == true)
                 ? user!.fullName
-                : ((user?.email.isNotEmpty == true)
-                    ? user!.email
-                    : "Nguyễn Văn Khang");
+                : ((user?.email.isNotEmpty == true) ? user!.email : "Bạn");
+        final totalXp = user?.totalXP ?? 0;
+        final rankTitle = LevelCalculator.getRankBadge(totalXp);
+        final scanned = user?.totalScanned ?? 0;
+        final points = user?.greenPoints ?? 0;
+        final xp = user?.totalXP ?? 0;
+
+        final unlockedCount =
+            SystemBadges.allBadges
+                .where((b) => b.isUnlocked(scanned, points, xp))
+                .length;
 
         return Scaffold(
           backgroundColor: const Color(0xFFF4F7F5),
           body: SingleChildScrollView(
             child: Column(
               children: [
-                ProfileHeader(avatarUrl: avatarUrl, displayName: displayName),
+                ProfileHeader(
+                  rankTitle: rankTitle,
+                  avatarUrl: avatarUrl ?? '',
+                  displayName: displayName,
+                ),
                 const SizedBox(height: 20),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     children: [
-                      const UserLevelCard(),
+                      UserLevelCard(totalXp: user?.totalXP ?? 0),
                       const SizedBox(height: 10),
-                      const GreenPointsWalletCard(),
+                      GreenPointsWalletCard(
+                        points: user?.greenPoints ?? 0,
+                        onRedeemTap: () => context.push('/redeem'),
+                      ),
                       const SizedBox(height: 10),
-                      const ProfileQuickActions(),
+                      ProfileQuickActions(
+                        unlockedBadgesText:
+                            "$unlockedCount/${SystemBadges.allBadges.length} Đạt được",
+                        onBadgesTap:
+                            () => BadgesBottomSheet.show(context, user),
+                        onQrTap:
+                            () => PersonalQrBottomSheet.show(context, user),
+                      ),
                       const SizedBox(height: 10),
-                      const ProfileAccountSection(),
+                      const ProfileAccountSection(
+                        title: 'Tài khoản và Địa chỉ',
+                      ),
+                      const SizedBox(height: 20),
+                      const ProfileAccountSection(
+                        title: 'Hoạt động và Nhật ký',
+                      ),
                       const SizedBox(height: 20),
                       SizedBox(
                         width: double.infinity,

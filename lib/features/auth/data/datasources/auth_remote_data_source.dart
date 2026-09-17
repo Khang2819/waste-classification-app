@@ -65,7 +65,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         if (userDoc.exists && userDoc.data() != null) {
           return UserModel.fromJson(userDoc.data()!);
         }
-      } catch (_) {}
+      } catch (_) {
+        print('Firestore error: e');
+      }
 
       return UserModel.fromFirebase(firebaseUser);
     } on FirebaseAuthException catch (e) {
@@ -108,6 +110,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           email: firebaseUser.email ?? '',
           fullName: firebaseUser.displayName ?? '',
           avatar: firebaseUser.photoURL,
+          greenPoints: 0,
+          totalXP: 0,
+          totalScanned: 0,
+          dailyScanCount: 0,
+          lastScanDate: '',
+          createdAt: DateTime.now(),
         );
 
         await firestore
@@ -160,6 +168,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         fullName: fullName,
         email: email,
         avatar: firebaseUser.photoURL,
+        greenPoints: 0,
+        totalXP: 0,
+        totalScanned: 0,
+        dailyScanCount: 0,
+        lastScanDate: '',
+        createdAt: DateTime.now(),
       );
       try {
         await firestore
@@ -189,18 +203,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Stream<UserModel?> getCurrentUser() {
-    return firebaseAuth.authStateChanges().asyncMap((firebaseUser) async {
-      if (firebaseUser == null) return null;
-      try {
-        final userDoc = await firestore
-            .collection('users')
-            .doc(firebaseUser.uid)
-            .get()
-            .timeout(const Duration(seconds: 3));
-        if (userDoc.exists && userDoc.data() != null) {
-          return UserModel.fromJson(userDoc.data()!);
-        }
-      } catch (_) {}
+    return firebaseAuth.authStateChanges().map((firebaseUser) {
+      if (firebaseUser == null) {
+        return null;
+      }
       return UserModel.fromFirebase(firebaseUser);
     });
   }

@@ -3,8 +3,14 @@ import 'package:flutter/material.dart';
 class ProfileQuickActions extends StatelessWidget {
   final VoidCallback? onBadgesTap;
   final VoidCallback? onQrTap;
+  final String unlockedBadgesText;
 
-  const ProfileQuickActions({super.key, this.onBadgesTap, this.onQrTap});
+  const ProfileQuickActions({
+    super.key,
+    this.onBadgesTap,
+    this.onQrTap,
+    this.unlockedBadgesText = "0/6 Đạt được",
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +46,7 @@ class ProfileQuickActions extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -52,7 +58,7 @@ class ProfileQuickActions extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        "4/6 đã mở",
+                        unlockedBadgesText,
                         style: TextStyle(color: Colors.grey, fontSize: 11),
                       ),
                     ],

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 class ProfileHeader extends StatelessWidget {
+  final String rankTitle;
   final String avatarUrl;
   final String displayName;
   final VoidCallback? onAvatarTap;
 
   const ProfileHeader({
     super.key,
+    this.rankTitle = 'Chiến Binh Xanh • Hạng Đồng',
     required this.avatarUrl,
     required this.displayName,
     this.onAvatarTap,
@@ -95,13 +97,17 @@ class ProfileHeader extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: Colors.white30),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.stars_rounded, color: Color(0xFFFFD54F), size: 18),
-                SizedBox(width: 6),
+                const Icon(
+                  Icons.stars_rounded,
+                  color: Color(0xFFFFD54F),
+                  size: 18,
+                ),
+                const SizedBox(width: 6),
                 Text(
-                  'Chiến Binh Xanh • Hạng Vàng 🏆',
+                  rankTitle,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 13,

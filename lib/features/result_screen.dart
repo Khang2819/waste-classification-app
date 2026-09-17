@@ -91,7 +91,6 @@ class ResultScreen extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // Card thông tin loại rác
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(

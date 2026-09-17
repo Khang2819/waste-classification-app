@@ -7,6 +7,12 @@ class UserModel extends User {
     required super.fullName,
     required super.email,
     super.avatar,
+    super.greenPoints,
+    super.totalXP,
+    super.totalScanned,
+    super.lastScanDate,
+    super.dailyScanCount,
+    super.createdAt,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -15,6 +21,15 @@ class UserModel extends User {
       fullName: json['full_name'] as String,
       email: json['email'] as String,
       avatar: json['avatar'] as String?,
+      greenPoints: (json['greenPoints'] as num?)?.toInt() ?? 0,
+      totalXP: (json['totalXP'] as num?)?.toInt() ?? 0,
+      totalScanned: (json['totalScanned'] as num?)?.toInt() ?? 0,
+      lastScanDate: json['lastScanDate'] as String? ?? '',
+      dailyScanCount: (json['dailyScanCount'] as num?)?.toInt() ?? 0,
+      createdAt:
+          json['createdAt'] != null
+              ? DateTime.tryParse(json['createdAt'] as String)
+              : null,
     );
   }
 
@@ -28,6 +43,17 @@ class UserModel extends User {
   }
 
   Map<String, dynamic> toJson() {
-    return {'id': id, 'full_name': fullName, 'email': email, 'avatar': avatar};
+    return {
+      'id': id,
+      'full_name': fullName,
+      'email': email,
+      'avatar': avatar,
+      'greenPoints': greenPoints,
+      'totalXP': totalXP,
+      'totalScanned': totalScanned,
+      'lastScanDate': lastScanDate,
+      'dailyScanCount': dailyScanCount,
+      'createdAt': createdAt?.toIso8601String(),
+    };
   }
 }

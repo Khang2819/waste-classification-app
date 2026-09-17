@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
-import 'package:waste_classification_app/features/history/screen/history_screen.dart';
+import 'package:waste_classification_app/features/history/presentation/screen/history_screen.dart';
 import 'package:waste_classification_app/features/home/screens/home_screen.dart';
 
 import '../../map/map_screen.dart';
-import '../../profile/screen/person_screen.dart';
+import '../../profile/presentation/screen/person_screen.dart';
 import '../../scan/presentation/screens/scan_screen.dart';
 import '../cubit/main_cubit.dart';
 
