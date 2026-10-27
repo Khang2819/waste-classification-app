@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/utils/level_calculator.dart';
+import '../../../main/cubit/main_cubit.dart';
 import '../../domain/badge_entity.dart';
 import '../cubit/profile_cubit.dart';
 import '../cubit/profile_state.dart';
@@ -48,6 +49,7 @@ class PersonScreen extends StatelessWidget {
                   rankTitle: rankTitle,
                   avatarUrl: avatarUrl ?? '',
                   displayName: displayName,
+                  onAvatarTap: () => context.push('/edit_profile'),
                 ),
                 const SizedBox(height: 20),
                 Padding(
@@ -70,12 +72,62 @@ class PersonScreen extends StatelessWidget {
                             () => PersonalQrBottomSheet.show(context, user),
                       ),
                       const SizedBox(height: 10),
-                      const ProfileAccountSection(
-                        title: 'Tài khoản và Địa chỉ',
+                      ProfileAccountSection(
+                        title: 'Tài khoản & Bảo mật',
+                        items: [
+                          ProfileAccountSection.buildItem(
+                            icon: Icons.person_outline_rounded,
+                            title: "Thông tin cá nhân",
+                            subtitle: "Chỉnh sửa tên, email",
+                            onTap: () => context.push('/edit_profile'),
+                          ),
+                          ProfileAccountSection.buildItem(
+                            icon: Icons.security_rounded,
+                            title: "Bảo mật tài khoản",
+                            subtitle: "Đổi mật khẩu, liên kết tài khoản",
+                            onTap: () => context.push('/account_security'),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 20),
-                      const ProfileAccountSection(
-                        title: 'Hoạt động và Nhật ký',
+                      ProfileAccountSection(
+                        title: 'Hoạt động & Nhật ký',
+                        items: [
+                          ProfileAccountSection.buildItem(
+                            icon: Icons.history_rounded,
+                            title: "Nhật ký phân loại rác",
+                            subtitle:
+                                "Xem lại toàn bộ lịch sử quét AI & gom rác",
+                            onTap: () {
+                              context.read<MainCubit>().change(3);
+                            },
+                          ),
+                          ProfileAccountSection.buildItem(
+                            icon: Icons.leaderboard_rounded,
+                            title: "Bảng xếp hạng cư dân Xanh",
+                            subtitle: "Top cư dân gom rác nhiều nhất",
+                            onTap: () => context.push('/leaderboard'),
+                          ),
+                          ProfileAccountSection.buildItem(
+                            icon: Icons.card_giftcard_rounded,
+                            title: "Lịch sử đổi quà",
+                            subtitle: "Voucher và phần quà xanh đã đổi",
+                            onTap: () => context.push('/redeem'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      ProfileAccountSection(
+                        title: 'QUẢN LÝ HỆ THỐNG',
+                        items: [
+                          ProfileAccountSection.buildItem(
+                            icon: Icons.admin_panel_settings_rounded,
+                            title: 'Trang quản trị',
+                            subtitle:
+                                "Quản lý người dùng, điểm thu gom & phần thưởng",
+                            onTap: () {},
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 20),
                       SizedBox(

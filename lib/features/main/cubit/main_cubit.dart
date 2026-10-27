@@ -2,7 +2,7 @@ import 'package:bloc/bloc.dart';
 
 class MainCubit extends Cubit<int> {
   MainCubit() : super(0);
-  void chage(int index) {
+  void change(int index) {
     emit(index);
   }
 }

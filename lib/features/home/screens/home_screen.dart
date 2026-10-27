@@ -118,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                             child: IconButton(
-                              onPressed: () {},
+                              onPressed: () => context.push('/notification'),
                               icon: const Icon(
                                 Icons.notifications_none_rounded,
                                 color: Color(0xFF1B5E20),
@@ -132,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Container(
                               width: 10,
                               height: 10,
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: Colors.red,
                                 shape: BoxShape.circle,
                               ),
@@ -357,7 +357,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: const Color(0xFF2E7D32),
                         bg: const Color(0xFFE8F5E9),
                         onTap: () {
-                          context.read<MainCubit>().chage(2);
+                          context.read<MainCubit>().change(2);
                         },
                       ),
                       _buildActionCard(
@@ -375,7 +375,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: const Color(0xFFED6C02),
                         bg: const Color(0xFFFFF3E0),
                         onTap: () {
-                          context.read<MainCubit>().chage(1);
+                          context.read<MainCubit>().change(1);
                         },
                       ),
                       _buildActionCard(
@@ -446,7 +446,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       TextButton(
                         onPressed: () {
-                          context.read<MainCubit>().chage(3);
+                          context.read<MainCubit>().change(3);
                         },
                         child: const Text(
                           "Xem tất cả",

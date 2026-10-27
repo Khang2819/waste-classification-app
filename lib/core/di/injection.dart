@@ -3,6 +3,8 @@ import 'package:waste_classification_app/features/auth/data/datasources/auth_rem
 import 'package:waste_classification_app/features/auth/domain/usecases/login_usecase.dart';
 import 'package:waste_classification_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:waste_classification_app/features/auth/presentation/cubit/login/login_cubit.dart';
+import 'package:waste_classification_app/features/map/data/repositories/map_repository_impl.dart';
+import 'package:waste_classification_app/features/map/presentation/cubit/map_cubit.dart';
 
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
@@ -12,6 +14,16 @@ import '../../features/auth/domain/usecases/logout_usecase.dart';
 import '../../features/auth/domain/usecases/register_usecase.dart';
 import '../../features/auth/presentation/cubit/register/register_cubit.dart';
 
+import '../../features/map/data/datasources/location_data_source.dart';
+import '../../features/map/data/datasources/routing_data_source.dart';
+import '../../features/map/data/datasources/waste_point_data_source.dart';
+import '../../features/map/domain/repositories/map_repository.dart';
+import '../../features/map/domain/usecase/add_waste_point.dart';
+import '../../features/map/domain/usecase/get_current_location.dart';
+import '../../features/map/domain/usecase/get_nearby_waste_points.dart';
+import '../../features/map/domain/usecase/get_route.dart';
+import '../../features/profile/domain/usecases/update_user_profile_usecase.dart';
+import '../../features/reward/domain/usecases/redeem_reward_usecase.dart';
 import '../../features/scan/data/datasources/scan_remote_data_sources.dart';
 import '../../features/scan/data/repositories/scan_repository_impl.dart';
 import '../../features/scan/domain/repositories/scan_repository.dart';
@@ -36,6 +48,15 @@ import 'package:waste_classification_app/features/profile/domain/repositories/pr
 import 'package:waste_classification_app/features/profile/domain/usecases/get_profile_stream_usecase.dart';
 import 'package:waste_classification_app/features/profile/presentation/cubit/profile_cubit.dart';
 
+import 'package:waste_classification_app/features/notifications/data/datasources/notification_remote_datasource.dart';
+import 'package:waste_classification_app/features/notifications/data/repositories/notification_repository_impl.dart';
+import 'package:waste_classification_app/features/notifications/domain/repositories/notification_repository.dart';
+import 'package:waste_classification_app/features/notifications/domain/usecases/get_notifications.dart';
+import 'package:waste_classification_app/features/notifications/domain/usecases/mark_all_as_read.dart';
+import 'package:waste_classification_app/features/notifications/domain/usecases/mark_as_read.dart';
+import 'package:waste_classification_app/features/notifications/domain/usecases/save_fcm_token.dart';
+import 'package:waste_classification_app/features/notifications/presentation/cubit/notification_cubit.dart';
+
 final getIt = GetIt.instance;
 
 Future<void> init() async {
@@ -57,25 +78,54 @@ Future<void> init() async {
       saveHistoryUsecases: getIt(),
     ),
   );
-  getIt.registerFactory(() => RewardCubit(rewardUsecase: getIt()));
   getIt.registerFactory(
-    () => ProfileCubit(getProfileStreamUseCase: getIt()),
+    () => RewardCubit(rewardUsecase: getIt(), redeemRewardUseCase: getIt()),
+  );
+  getIt.registerFactory(
+    () => ProfileCubit(
+      getProfileStreamUseCase: getIt(),
+      updateUserProfileUseCase: getIt(),
+    ),
+  );
+  getIt.registerFactory(
+    () => MapCubit(
+      getCurrentLocation: getIt(),
+      getNearbyWastePoints: getIt(),
+      addWastePointUseCase: getIt(),
+    ),
+  );
+  getIt.registerFactory(
+    () => NotificationCubit(
+      getNotifications: getIt(),
+      markAllAsRead: getIt(),
+      markAsRead: getIt(),
+    ),
   );
 
-  getIt.registerFactory(() => GetCurrentUserUseCase(getIt()));
-  getIt.registerFactory(() => LogoutUseCase(getIt()));
   //case
 
   getIt.registerLazySingleton(() => LoginUseCase(getIt()));
   getIt.registerLazySingleton(() => RegisterUseCase(getIt()));
   getIt.registerLazySingleton(() => GoogleUsecase(getIt()));
   getIt.registerLazySingleton(() => ScanWaste(getIt()));
+  getIt.registerLazySingleton(() => RedeemRewardUseCase(getIt()));
 
   getIt.registerLazySingleton(() => GetScanHistoriesUseCase(getIt()));
   getIt.registerLazySingleton(() => DeleteHistoryUsecases(getIt()));
   getIt.registerLazySingleton(() => SaveHistoryUsecases(getIt()));
   getIt.registerLazySingleton(() => Reward(getIt()));
   getIt.registerLazySingleton(() => GetProfileStreamUseCase(getIt()));
+  getIt.registerLazySingleton(() => UpdateUserProfileUsecase(getIt()));
+  getIt.registerLazySingleton(() => GetCurrentUserUseCase(getIt()));
+  getIt.registerLazySingleton(() => LogoutUseCase(getIt()));
+  getIt.registerLazySingleton(() => GetCurrentLocation(getIt()));
+  getIt.registerLazySingleton(() => GetRoute(getIt()));
+  getIt.registerLazySingleton(() => GetNearbyWastePoints(getIt()));
+  getIt.registerLazySingleton(() => AddWastePoint(getIt()));
+  getIt.registerLazySingleton(() => GetNotifications(getIt()));
+  getIt.registerLazySingleton(() => MarkAllAsRead(getIt()));
+  getIt.registerLazySingleton(() => MarkAsRead(getIt()));
+  getIt.registerLazySingleton(() => SaveFcmToken(getIt()));
 
   //Repository
   getIt.registerLazySingleton<AuthRepository>(
@@ -93,6 +143,12 @@ Future<void> init() async {
   getIt.registerLazySingleton<ProfileRepository>(
     () => ProfileRepositoryImpl(remoteDataSource: getIt()),
   );
+  getIt.registerLazySingleton<LocationRepository>(
+    () => MapRepositoryImpl(getIt(), getIt(), getIt()),
+  );
+  getIt.registerLazySingleton<NotificationRepository>(
+    () => NotificationRepositoryImpl(remoteDatasource: getIt()),
+  );
 
   // data
   getIt.registerLazySingleton<AuthRemoteDataSource>(
@@ -109,5 +165,17 @@ Future<void> init() async {
   );
   getIt.registerLazySingleton<ProfileRemoteDataSource>(
     () => ProfileRemoteDataSourceImpl(),
+  );
+  getIt.registerLazySingleton<LocationDataSource>(
+    () => LocationRemoteDataSourceImpl(),
+  );
+  getIt.registerLazySingleton<RoutingDataSource>(
+    () => RoutingRemoteDataSourceImpl(),
+  );
+  getIt.registerLazySingleton<WastePointDataSource>(
+    () => WastePointRemoteDataSourceImpl(),
+  );
+  getIt.registerLazySingleton<NotificationRemoteDatasource>(
+    () => NotificationRemoteDataSourceImpl(),
   );
 }

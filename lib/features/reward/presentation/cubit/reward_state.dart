@@ -11,6 +11,16 @@ final class RewardInitial extends RewardState {}
 
 final class RewardLoading extends RewardState {}
 
+final class RewardRedeemSuccess extends RewardState {
+  final String message;
+  const RewardRedeemSuccess(this.message);
+
+  @override
+  List<Object> get props => [message];
+}
+
+final class RewardRedeeming extends RewardState {}
+
 final class RewardLoaded extends RewardState {
   final List<RewardEntity> rewards;
 

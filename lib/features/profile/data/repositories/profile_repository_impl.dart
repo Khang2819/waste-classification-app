@@ -11,4 +11,19 @@ class ProfileRepositoryImpl implements ProfileRepository {
   Stream<User> getUserProfile(String userId) {
     return remoteDataSource.getUserProfile(userId);
   }
+
+  @override
+  Future<void> updateUserProfile({
+    required String userId,
+    required String fullName,
+    String? email,
+    String? avatarUrl,
+  }) {
+    return remoteDataSource.updateUserProfile(
+      userId: userId,
+      fullName: fullName,
+      email: email,
+      avatarUrl: avatarUrl,
+    );
+  }
 }

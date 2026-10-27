@@ -55,7 +55,6 @@ class ResultScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Hình ảnh đã chụp
                       Container(
                         height: 240,
                         decoration: BoxDecoration(
@@ -241,8 +240,6 @@ class ResultScreen extends StatelessWidget {
                       ),
 
                       const SizedBox(height: 30),
-
-                      // Action buttons
                       Row(
                         children: [
                           Expanded(

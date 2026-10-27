@@ -4,7 +4,7 @@ import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:waste_classification_app/features/history/presentation/screen/history_screen.dart';
 import 'package:waste_classification_app/features/home/screens/home_screen.dart';
 
-import '../../map/map_screen.dart';
+import '../../map/presentation/map_screen.dart';
 import '../../profile/presentation/screen/person_screen.dart';
 import '../../scan/presentation/screens/scan_screen.dart';
 import '../cubit/main_cubit.dart';
@@ -43,7 +43,7 @@ class MainScreen extends StatelessWidget {
                   ),
                   child: SalomonBottomBar(
                     currentIndex: currentIndex,
-                    onTap: (index) => context.read<MainCubit>().chage(index),
+                    onTap: (index) => context.read<MainCubit>().change(index),
                     selectedItemColor: const Color(0xFF2E7D32),
                     unselectedItemColor: Colors.grey,
                     items: [

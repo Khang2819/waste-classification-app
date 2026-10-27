@@ -2,35 +2,16 @@ import 'package:flutter/material.dart';
 
 class ProfileAccountSection extends StatelessWidget {
   final String title;
-  const ProfileAccountSection({super.key, required this.title});
+  final List<Widget> items;
+
+  const ProfileAccountSection({
+    super.key,
+    required this.title,
+    required this.items,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return _buildCard(
-      items: [
-        _buildList(
-          icon: Icons.person_outline_rounded,
-          title: "Thông tin cá nhân",
-          subtitle: "Chỉnh sửa họ tên, email, SĐT",
-          onTap: () {},
-        ),
-        _buildList(
-          icon: Icons.security_rounded,
-          title: "Bảo mật tài khoản",
-          subtitle: "Đổi mật khẩu, xác thực 2 lớp",
-          onTap: () {},
-        ),
-        _buildList(
-          icon: Icons.location_on_outlined,
-          title: "Địa chỉ của tôi",
-          subtitle: "Quản lý địa chỉ giao hàng / gom rác",
-          onTap: () {},
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCard({required List<Widget> items}) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
@@ -48,10 +29,10 @@ class ProfileAccountSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.only(left: 4, top: 4, bottom: 8),
+            padding: const EdgeInsets.only(left: 4, top: 4, bottom: 8),
             child: Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF1B5E20),
@@ -60,8 +41,8 @@ class ProfileAccountSection extends StatelessWidget {
             ),
           ),
           ...items.asMap().entries.map((entry) {
-            int id = entry.key;
-            Widget widget = entry.value;
+            final id = entry.key;
+            final widget = entry.value;
             return Column(
               children: [
                 widget,
@@ -80,7 +61,7 @@ class ProfileAccountSection extends StatelessWidget {
     );
   }
 
-  Widget _buildList({
+  static Widget buildItem({
     required IconData icon,
     required String title,
     required String subtitle,

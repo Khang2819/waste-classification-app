@@ -21,7 +21,7 @@ class RewardModels extends RewardEntity {
       points: (data['points'] as num?)?.toInt() ?? 0,
       description: data['description'] as String? ?? "",
       stock: (data['stock'] as num?)?.toInt() ?? 0,
-      imageUrl: data['imageUrl'] as String,
+      imageUrl: data['imageUrl'] as String?,
     );
   }
 
