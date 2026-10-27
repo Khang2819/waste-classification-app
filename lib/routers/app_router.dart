@@ -8,7 +8,11 @@ import '../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/auth/presentation/screens/register_screen.dart';
 import '../features/main/screen/main_screen.dart';
-import '../features/map/map_screen.dart';
+import '../features/map/presentation/map_screen.dart';
+import '../features/notifications/presentation/screen/notification_screen.dart';
+import '../features/profile/presentation/screen/account_security_screen.dart';
+import '../features/profile/presentation/screen/edit_profile_screen.dart';
+import '../features/profile/presentation/screen/leaderboard_screen.dart';
 import '../features/reward/presentation/screen/redeem_screen.dart';
 import '../features/result_screen.dart';
 import '../features/scan/domain/entities/scan_entities.dart';
@@ -40,8 +44,10 @@ class AppRouter {
             state.matchedLocation == '/register' ||
             state.matchedLocation == '/forgot_password';
 
-        if (auth is AuthInitial) {
-          return isSplash ? null : '/splash';
+        if (isSplash) return null;
+
+        if (auth is AuthInitial || auth is AuthUnknown) {
+          return null;
         }
 
         if (auth is AuthUnauthenticated) {
@@ -49,7 +55,7 @@ class AppRouter {
         }
 
         if (auth is AuthAuthenticated) {
-          if (authRoute || isSplash) return '/main';
+          if (authRoute) return '/main';
         }
         return null;
       },
@@ -82,6 +88,22 @@ class AppRouter {
         GoRoute(
           path: '/redeem',
           builder: (context, state) => const RedeemScreen(),
+        ),
+        GoRoute(
+          path: '/edit_profile',
+          builder: (context, state) => const EditProfileScreen(),
+        ),
+        GoRoute(
+          path: '/account_security',
+          builder: (context, state) => const AccountSecurityScreen(),
+        ),
+        GoRoute(
+          path: '/leaderboard',
+          builder: (context, state) => const LeaderboardScreen(),
+        ),
+        GoRoute(
+          path: '/notification',
+          builder: (context, state) => const NotificationScreen(),
         ),
       ],
     );

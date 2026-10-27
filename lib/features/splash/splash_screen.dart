@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../auth/presentation/bloc/auth_bloc.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -8,6 +11,24 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _navigateToNext();
+  }
+
+  Future<void> _navigateToNext() async {
+    // Giữ màn hình Splash tối thiểu 2 giây để người dùng kịp nhìn thấy
+    await Future.delayed(const Duration(milliseconds: 2000));
+    if (!mounted) return;
+
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      context.go('/main');
+    } else {
+      context.go('/login');
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
