@@ -44,6 +44,11 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<void> resetPassword({required String email}) async {
+    await remoteDataSource.resetPassword(email: email);
+  }
+
+  @override
   Stream<User?> getCurrentUser() {
     return remoteDataSource.getCurrentUser();
   }

@@ -11,6 +11,7 @@ class User extends Equatable {
   final String lastScanDate;
   final int dailyScanCount;
   final DateTime? createdAt;
+  final String role;
 
   const User({
     required this.id,
@@ -23,7 +24,11 @@ class User extends Equatable {
     this.lastScanDate = '',
     this.dailyScanCount = 0,
     this.createdAt,
+    this.role = 'user',
   });
+
+  bool get isAdmin => role.trim().toLowerCase() == 'admin';
+
   @override
   List<Object?> get props => [
     id,
@@ -36,5 +41,6 @@ class User extends Equatable {
     lastScanDate,
     dailyScanCount,
     createdAt,
+    role,
   ];
 }

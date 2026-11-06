@@ -16,5 +16,7 @@ abstract class AuthRepository {
 
   Future<void> logout();
 
+  Future<void> resetPassword({required String email});
+
   Stream<User?> getCurrentUser();
 }

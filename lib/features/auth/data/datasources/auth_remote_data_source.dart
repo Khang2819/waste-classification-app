@@ -20,6 +20,7 @@ abstract class AuthRemoteDataSource {
 
   Future<UserModel> loginWithGoogle();
   Future<void> logout();
+  Future<void> resetPassword({required String email});
 
   Stream<UserModel?> getCurrentUser();
 }
@@ -63,7 +64,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
             .timeout(const Duration(seconds: 4));
 
         if (userDoc.exists && userDoc.data() != null) {
-          return UserModel.fromJson(userDoc.data()!);
+          final data = Map<String, dynamic>.from(userDoc.data()!);
+          data['id'] = firebaseUser.uid;
+          return UserModel.fromJson(data);
         }
       } catch (_) {
         print('Firestore error: e');
@@ -127,7 +130,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       if (doc.data() != null) {
-        return UserModel.fromJson(doc.data()!);
+        final data = Map<String, dynamic>.from(doc.data()!);
+        data['id'] = firebaseUser.uid;
+        return UserModel.fromJson(data);
       }
 
       return UserModel.fromFirebase(firebaseUser);
@@ -202,11 +207,44 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
+  Future<void> resetPassword({required String email}) async {
+    try {
+      await firebaseAuth
+          .sendPasswordResetEmail(email: email.trim())
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout:
+                () =>
+                    throw Exception(
+                      'Kết nối quá thời gian. Vui lòng kiểm tra lại kết nối mạng.',
+                    ),
+          );
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_getVietnameseErrorMessage(e.code, e.message));
+    } catch (e) {
+      throw Exception(e.toString().replaceAll('Exception: ', ''));
+    }
+  }
+
+  @override
   Stream<UserModel?> getCurrentUser() {
-    return firebaseAuth.authStateChanges().map((firebaseUser) {
+    return firebaseAuth.authStateChanges().asyncMap((firebaseUser) async {
       if (firebaseUser == null) {
         return null;
       }
+      try {
+        final userDoc = await firestore
+            .collection('users')
+            .doc(firebaseUser.uid)
+            .get()
+            .timeout(const Duration(seconds: 5));
+
+        if (userDoc.exists && userDoc.data() != null) {
+          final data = Map<String, dynamic>.from(userDoc.data()!);
+          data['id'] = firebaseUser.uid;
+          return UserModel.fromJson(data);
+        }
+      } catch (_) {}
       return UserModel.fromFirebase(firebaseUser);
     });
   }

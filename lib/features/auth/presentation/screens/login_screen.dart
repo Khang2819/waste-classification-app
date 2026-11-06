@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
+import '../bloc/auth_bloc.dart';
 import '../cubit/login/login_cubit.dart';
 import '../cubit/login/login_state.dart';
 
@@ -90,6 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 BlocConsumer<LoginCubit, LoginState>(
                   listener: (context, state) {
                     if (state is LoginSuccess) {
+                      context.read<AuthBloc>().add(LoggedIn(user: state.user));
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
@@ -99,7 +101,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           behavior: SnackBarBehavior.floating,
                         ),
                       );
-                      context.go('/main');
+                      if (state.user.isAdmin) {
+                        context.go('/admin');
+                      } else {
+                        context.go('/main');
+                      }
                     } else if (state is LoginFailure) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(

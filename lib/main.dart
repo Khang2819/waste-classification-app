@@ -16,6 +16,7 @@ import 'features/auth/presentation/cubit/register/register_cubit.dart';
 import 'features/history/presentation/cubit/history_cubit.dart';
 import 'features/notifications/domain/usecases/save_fcm_token.dart';
 import 'features/notifications/presentation/cubit/notification_cubit.dart';
+import 'features/profile/presentation/cubit/change_password_cubit.dart';
 import 'features/profile/presentation/cubit/profile_cubit.dart';
 import 'features/reward/presentation/cubit/reward_cubit.dart';
 import 'features/scan/presentation/cubit/scan_cubit.dart';
@@ -34,6 +35,7 @@ void main() async {
           create: (context) => getIt<AuthBloc>()..add(AppStarted()),
         ),
         BlocProvider(create: (_) => getIt<ProfileCubit>()),
+        BlocProvider(create: (_) => getIt<ChangePasswordCubit>()),
         BlocProvider(create: (_) => getIt<LoginCubit>()),
         BlocProvider(create: (_) => getIt<RegisterCubit>()),
         BlocProvider(create: (_) => getIt<ScanCubit>()),

@@ -22,9 +22,20 @@ class _SplashScreenState extends State<SplashScreen> {
     await Future.delayed(const Duration(milliseconds: 2000));
     if (!mounted) return;
 
-    final authState = context.read<AuthBloc>().state;
+    var authState = context.read<AuthBloc>().state;
+    if (authState is AuthInitial || authState is AuthUnknown) {
+      authState = await context.read<AuthBloc>().stream.firstWhere(
+        (s) => s is! AuthInitial && s is! AuthUnknown,
+      );
+    }
+    if (!mounted) return;
+
     if (authState is AuthAuthenticated) {
-      context.go('/main');
+      if (authState.user.isAdmin) {
+        context.go('/admin');
+      } else {
+        context.go('/main');
+      }
     } else {
       context.go('/login');
     }

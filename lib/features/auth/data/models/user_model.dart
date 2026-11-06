@@ -13,32 +13,46 @@ class UserModel extends User {
     super.lastScanDate,
     super.dailyScanCount,
     super.createdAt,
+    super.role = 'user',
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    final parsedRole =
+        json['role']?.toString().trim().isNotEmpty == true
+            ? json['role'].toString().trim()
+            : (json['isAdmin'] == true ? 'admin' : 'user');
+
     return UserModel(
-      id: json['id'] as String,
-      fullName: json['full_name'] as String,
-      email: json['email'] as String,
-      avatar: json['avatar'] as String?,
+      id: json['id']?.toString() ?? '',
+      fullName:
+          (json['full_name'] ?? json['fullName'] ?? json['name'])?.toString() ??
+          '',
+      email: json['email']?.toString() ?? '',
+      avatar:
+          (json['avatar'] ?? json['photoUrl'] ?? json['photoURL'])?.toString(),
       greenPoints: (json['greenPoints'] as num?)?.toInt() ?? 0,
       totalXP: (json['totalXP'] as num?)?.toInt() ?? 0,
       totalScanned: (json['totalScanned'] as num?)?.toInt() ?? 0,
-      lastScanDate: json['lastScanDate'] as String? ?? '',
+      lastScanDate: json['lastScanDate']?.toString() ?? '',
       dailyScanCount: (json['dailyScanCount'] as num?)?.toInt() ?? 0,
       createdAt:
           json['createdAt'] != null
-              ? DateTime.tryParse(json['createdAt'] as String)
+              ? DateTime.tryParse(json['createdAt'].toString())
               : null,
+      role: parsedRole,
     );
   }
 
-  factory UserModel.fromFirebase(firebase_auth.User user) {
+  factory UserModel.fromFirebase(
+    firebase_auth.User user, {
+    String role = 'user',
+  }) {
     return UserModel(
       id: user.uid,
       fullName: user.displayName ?? '',
       email: user.email ?? '',
       avatar: user.photoURL,
+      role: role,
     );
   }
 
@@ -54,6 +68,7 @@ class UserModel extends User {
       'lastScanDate': lastScanDate,
       'dailyScanCount': dailyScanCount,
       'createdAt': createdAt?.toIso8601String(),
+      'role': role,
     };
   }
 }
