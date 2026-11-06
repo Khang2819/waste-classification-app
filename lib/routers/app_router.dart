@@ -17,6 +17,7 @@ import '../features/reward/presentation/screen/redeem_screen.dart';
 import '../features/result_screen.dart';
 import '../features/scan/domain/entities/scan_entities.dart';
 import '../features/splash/splash_screen.dart';
+import '../features/admin/presentation/screens/admin_screen.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream stream) {
@@ -55,7 +56,13 @@ class AppRouter {
         }
 
         if (auth is AuthAuthenticated) {
-          if (authRoute) return '/main';
+          if (authRoute) {
+            return auth.user.isAdmin ? '/admin' : '/main';
+          }
+          if (state.matchedLocation.startsWith('/admin') &&
+              !auth.user.isAdmin) {
+            return '/main';
+          }
         }
         return null;
       },
@@ -104,6 +111,10 @@ class AppRouter {
         GoRoute(
           path: '/notification',
           builder: (context, state) => const NotificationScreen(),
+        ),
+        GoRoute(
+          path: '/admin',
+          builder: (context, state) => const AdminScreen(),
         ),
       ],
     );

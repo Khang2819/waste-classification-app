@@ -12,7 +12,9 @@ import '../../features/auth/domain/usecases/get_current_user_usecase.dart';
 import '../../features/auth/domain/usecases/google_usecase.dart';
 import '../../features/auth/domain/usecases/logout_usecase.dart';
 import '../../features/auth/domain/usecases/register_usecase.dart';
+import '../../features/auth/domain/usecases/forgot_password_usecase.dart';
 import '../../features/auth/presentation/cubit/register/register_cubit.dart';
+import '../../features/auth/presentation/cubit/forgot_password/forgot_password_cubit.dart';
 
 import '../../features/map/data/datasources/location_data_source.dart';
 import '../../features/map/data/datasources/routing_data_source.dart';
@@ -45,7 +47,11 @@ import 'package:waste_classification_app/features/reward/presentation/cubit/rewa
 import 'package:waste_classification_app/features/profile/data/datasources/profile_remote_data_source.dart';
 import 'package:waste_classification_app/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:waste_classification_app/features/profile/domain/repositories/profile_repository.dart';
+import 'package:waste_classification_app/features/profile/domain/usecases/change_password_usecase.dart';
+import 'package:waste_classification_app/features/profile/domain/usecases/create_password_usecase.dart';
 import 'package:waste_classification_app/features/profile/domain/usecases/get_profile_stream_usecase.dart';
+import 'package:waste_classification_app/features/profile/domain/usecases/send_password_reset_email_usecase.dart';
+import 'package:waste_classification_app/features/profile/presentation/cubit/change_password_cubit.dart';
 import 'package:waste_classification_app/features/profile/presentation/cubit/profile_cubit.dart';
 
 import 'package:waste_classification_app/features/notifications/data/datasources/notification_remote_datasource.dart';
@@ -56,6 +62,11 @@ import 'package:waste_classification_app/features/notifications/domain/usecases/
 import 'package:waste_classification_app/features/notifications/domain/usecases/mark_as_read.dart';
 import 'package:waste_classification_app/features/notifications/domain/usecases/save_fcm_token.dart';
 import 'package:waste_classification_app/features/notifications/presentation/cubit/notification_cubit.dart';
+import 'package:waste_classification_app/features/admin/data/datasources/admin_remote_data_source.dart';
+import 'package:waste_classification_app/features/admin/data/repositories/admin_repository_impl.dart';
+import 'package:waste_classification_app/features/admin/domain/repositories/admin_repository.dart';
+import 'package:waste_classification_app/features/admin/domain/usecases/admin_usecases.dart';
+import 'package:waste_classification_app/features/admin/presentation/cubit/admin_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -70,6 +81,9 @@ Future<void> init() async {
     () => LoginCubit(loginUseCase: getIt(), googleUsecase: getIt()),
   );
   getIt.registerFactory(() => RegisterCubit(registerUseCase: getIt()));
+  getIt.registerFactory(
+    () => ForgotPasswordCubit(forgotPasswordUseCase: getIt()),
+  );
   getIt.registerFactory(() => ScanCubit(scanWasteUseCase: getIt()));
   getIt.registerFactory(
     () => HistoryCubit(
@@ -88,6 +102,14 @@ Future<void> init() async {
     ),
   );
   getIt.registerFactory(
+    () => ChangePasswordCubit(
+      changePasswordUseCase: getIt(),
+      createPasswordUseCase: getIt(),
+      sendPasswordResetEmailUseCase: getIt(),
+      profileRepository: getIt(),
+    ),
+  );
+  getIt.registerFactory(
     () => MapCubit(
       getCurrentLocation: getIt(),
       getNearbyWastePoints: getIt(),
@@ -101,11 +123,13 @@ Future<void> init() async {
       markAsRead: getIt(),
     ),
   );
+  getIt.registerFactory(() => AdminCubit(adminUseCases: getIt()));
 
   //case
 
   getIt.registerLazySingleton(() => LoginUseCase(getIt()));
   getIt.registerLazySingleton(() => RegisterUseCase(getIt()));
+  getIt.registerLazySingleton(() => ForgotPasswordUseCase(getIt()));
   getIt.registerLazySingleton(() => GoogleUsecase(getIt()));
   getIt.registerLazySingleton(() => ScanWaste(getIt()));
   getIt.registerLazySingleton(() => RedeemRewardUseCase(getIt()));
@@ -116,6 +140,9 @@ Future<void> init() async {
   getIt.registerLazySingleton(() => Reward(getIt()));
   getIt.registerLazySingleton(() => GetProfileStreamUseCase(getIt()));
   getIt.registerLazySingleton(() => UpdateUserProfileUsecase(getIt()));
+  getIt.registerLazySingleton(() => ChangePasswordUseCase(getIt()));
+  getIt.registerLazySingleton(() => CreatePasswordUseCase(getIt()));
+  getIt.registerLazySingleton(() => SendPasswordResetEmailUseCase(getIt()));
   getIt.registerLazySingleton(() => GetCurrentUserUseCase(getIt()));
   getIt.registerLazySingleton(() => LogoutUseCase(getIt()));
   getIt.registerLazySingleton(() => GetCurrentLocation(getIt()));
@@ -126,6 +153,7 @@ Future<void> init() async {
   getIt.registerLazySingleton(() => MarkAllAsRead(getIt()));
   getIt.registerLazySingleton(() => MarkAsRead(getIt()));
   getIt.registerLazySingleton(() => SaveFcmToken(getIt()));
+  getIt.registerLazySingleton(() => AdminUseCases(getIt()));
 
   //Repository
   getIt.registerLazySingleton<AuthRepository>(
@@ -148,6 +176,9 @@ Future<void> init() async {
   );
   getIt.registerLazySingleton<NotificationRepository>(
     () => NotificationRepositoryImpl(remoteDatasource: getIt()),
+  );
+  getIt.registerLazySingleton<AdminRepository>(
+    () => AdminRepositoryImpl(remoteDataSource: getIt()),
   );
 
   // data
@@ -177,5 +208,8 @@ Future<void> init() async {
   );
   getIt.registerLazySingleton<NotificationRemoteDatasource>(
     () => NotificationRemoteDataSourceImpl(),
+  );
+  getIt.registerLazySingleton<AdminRemoteDataSource>(
+    () => AdminRemoteDataSourceImpl(),
   );
 }
