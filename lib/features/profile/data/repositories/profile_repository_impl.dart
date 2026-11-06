@@ -8,6 +8,15 @@ class ProfileRepositoryImpl implements ProfileRepository {
   ProfileRepositoryImpl({required this.remoteDataSource});
 
   @override
+  bool get isPasswordLinked => remoteDataSource.isPasswordLinked;
+
+  @override
+  bool get isGoogleLinked => remoteDataSource.isGoogleLinked;
+
+  @override
+  String? get currentUserEmail => remoteDataSource.currentUserEmail;
+
+  @override
   Stream<User> getUserProfile(String userId) {
     return remoteDataSource.getUserProfile(userId);
   }
@@ -25,5 +34,30 @@ class ProfileRepositoryImpl implements ProfileRepository {
       email: email,
       avatarUrl: avatarUrl,
     );
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) {
+    return remoteDataSource.changePassword(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
+  }
+
+  @override
+  Future<void> createPassword({
+    required String newPassword,
+  }) {
+    return remoteDataSource.createPassword(
+      newPassword: newPassword,
+    );
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail() {
+    return remoteDataSource.sendPasswordResetEmail();
   }
 }

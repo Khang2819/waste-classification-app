@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:waste_classification_app/features/auth/presentation/bloc/auth_bloc.dart';
@@ -125,6 +126,331 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
             ],
           ),
+    );
+  }
+
+  Widget _buildThumbnail(String imagePath) {
+    final path = imagePath.trim();
+    final isNetwork = path.startsWith('http://') || path.startsWith('https://');
+    final cleanPath = path.replaceFirst('file://', '');
+    final isLocal = path.isNotEmpty && !isNetwork && File(cleanPath).existsSync();
+
+    if (isNetwork) {
+      return CachedNetworkImage(
+        imageUrl: path,
+        width: 52,
+        height: 52,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => Container(
+          width: 52,
+          height: 52,
+          color: const Color(0xFFE8F5E9),
+          child: const Center(
+            child: SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Color(0xFF2E7D32),
+              ),
+            ),
+          ),
+        ),
+        errorWidget: (context, url, error) => _buildFallbackIcon(),
+      );
+    }
+
+    if (isLocal) {
+      return Image.file(
+        File(cleanPath),
+        width: 52,
+        height: 52,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildFallbackIcon(),
+      );
+    }
+
+    return _buildFallbackIcon();
+  }
+
+  Widget _buildFallbackIcon() {
+    return Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8F5E9),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Icon(
+        Icons.center_focus_strong_rounded,
+        color: Color(0xFF2E7D32),
+        size: 26,
+      ),
+    );
+  }
+
+  void _showDetailBottomSheet(
+    BuildContext context,
+    ScanHistoryEntity item,
+    String userId,
+  ) {
+    final path = item.imagePath.trim();
+    final isNetwork = path.startsWith('http://') || path.startsWith('https://');
+    final cleanPath = path.replaceFirst('file://', '');
+    final isLocal = path.isNotEmpty && !isNetwork && File(cleanPath).existsSync();
+
+    final confidencePct = (item.confidence <= 1
+            ? (item.confidence * 100).toInt()
+            : item.confidence.toInt())
+        .clamp(0, 100);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      item.label,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1B5E20),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F5E9),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '+${item.pointsEarned} GP',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2E7D32),
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // Ảnh lớn
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: isNetwork
+                    ? CachedNetworkImage(
+                        imageUrl: path,
+                        width: double.infinity,
+                        height: 220,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          height: 220,
+                          color: Colors.grey.shade100,
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: Color(0xFF2E7D32),
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          height: 140,
+                          color: const Color(0xFFE8F5E9),
+                          child: const Center(
+                            child: Icon(
+                              Icons.broken_image_rounded,
+                              size: 48,
+                              color: Color(0xFF2E7D32),
+                            ),
+                          ),
+                        ),
+                      )
+                    : (isLocal
+                        ? Image.file(
+                            File(cleanPath),
+                            width: double.infinity,
+                            height: 220,
+                            fit: BoxFit.cover,
+                          )
+                        : Container(
+                            width: double.infinity,
+                            height: 140,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE8F5E9),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.center_focus_strong_rounded,
+                                size: 48,
+                                color: Color(0xFF2E7D32),
+                              ),
+                            ),
+                          )),
+              ),
+              const SizedBox(height: 16),
+
+              // Thông tin chi tiết
+              Row(
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1B5E20).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      item.category.isNotEmpty ? item.category : "Rác tái chế",
+                      style: const TextStyle(
+                        color: Color(0xFF1B5E20),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.verified_outlined,
+                          size: 14,
+                          color: Color(0xFF2E7D32),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Độ tin cậy: $confidencePct%',
+                          style: const TextStyle(
+                            color: Color(0xFF2E7D32),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    _formatDateTime(item.createdAt),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // Khung hướng dẫn
+              if (item.instruction.isNotEmpty) ...[
+                const Text(
+                  'Hướng dẫn phân loại & xử lý:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: Color(0xFF2E3E33),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF4F7F5),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Text(
+                    item.instruction,
+                    style: TextStyle(
+                      fontSize: 13,
+                      height: 1.4,
+                      color: Colors.grey.shade800,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              // Nút xóa & Đóng
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(
+                        Icons.delete_outline_rounded,
+                        color: Colors.red,
+                        size: 18,
+                      ),
+                      label: const Text(
+                        'Xóa nhật ký',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.red.shade300),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _confirmDelete(context, userId, item.id);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2E7D32),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Đóng'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -550,9 +876,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         )
                       else
                         ...filteredList.map((item) {
-                          final hasImage =
-                              item.imagePath.isNotEmpty &&
-                              File(item.imagePath).existsSync();
                           final confidencePct = (item.confidence <= 1
                                   ? (item.confidence * 100).toInt()
                                   : item.confidence.toInt())
@@ -560,7 +883,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
                           return Container(
                             margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16),
                               color: Colors.white,
@@ -572,120 +894,161 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 ),
                               ],
                             ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Thumbnail ảnh hoặc Icon
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child:
-                                      hasImage
-                                          ? Image.file(
-                                            File(item.imagePath),
-                                            width: 48,
-                                            height: 48,
-                                            fit: BoxFit.cover,
-                                          )
-                                          : Container(
-                                            width: 48,
-                                            height: 48,
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFE8F5E9),
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                            ),
-                                            child: const Icon(
-                                              Icons.center_focus_strong_rounded,
-                                              color: Color(0xFF2E7D32),
-                                            ),
-                                          ),
+                            child: Material(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(16),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: () => _showDetailBottomSheet(
+                                  context,
+                                  item,
+                                  userId,
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(14),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              item.label,
+                                      // Thumbnail ảnh hoặc Icon thông minh
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: _buildThumbnail(item.imagePath),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    item.label,
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 14,
+                                                    ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    maxLines: 1,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 6),
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 2,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(
+                                                      0xFF1B5E20,
+                                                    ).withValues(alpha: 0.1),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                  ),
+                                                  child: Text(
+                                                    item.category.isNotEmpty
+                                                        ? item.category
+                                                        : "Rác tái chế",
+                                                    style: const TextStyle(
+                                                      color: Color(0xFF1B5E20),
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 5),
+                                            Text(
+                                              item.instruction.isNotEmpty
+                                                  ? item.instruction
+                                                  : "Quét tự động qua AI Camera",
                                               style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 14,
+                                                fontSize: 12,
+                                                color: Colors.grey,
                                               ),
+                                              maxLines: 2,
                                               overflow: TextOverflow.ellipsis,
-                                              maxLines: 1,
                                             ),
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 2,
+                                            const SizedBox(height: 6),
+                                            Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.access_time,
+                                                  size: 12,
+                                                  color: Colors.grey,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  _formatDateTime(
+                                                    item.createdAt,
+                                                  ),
+                                                  style: const TextStyle(
+                                                    fontSize: 11,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 10),
+                                                const Icon(
+                                                  Icons.verified_outlined,
+                                                  size: 12,
+                                                  color: Color(0xFF2E7D32),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  "$confidencePct%",
+                                                  style: const TextStyle(
+                                                    fontSize: 11,
+                                                    color: Color(0xFF2E7D32),
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                            decoration: BoxDecoration(
-                                              color: const Color(
-                                                0xFF1B5E20,
-                                              ).withValues(alpha: 0.1),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Text(
-                                              item.category.isNotEmpty
-                                                  ? item.category
-                                                  : "Rác tái chế",
-                                              style: const TextStyle(
-                                                color: Color(0xFF1B5E20),
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 5),
-                                      Text(
-                                        item.instruction.isNotEmpty
-                                            ? item.instruction
-                                            : "Quét tự động qua AI Camera",
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey,
+                                          ],
                                         ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      const SizedBox(height: 6),
-                                      Row(
+                                      const SizedBox(width: 8),
+
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
                                         children: [
-                                          const Icon(
-                                            Icons.access_time,
-                                            size: 12,
-                                            color: Colors.grey,
-                                          ),
-                                          const SizedBox(width: 4),
                                           Text(
-                                            _formatDateTime(item.createdAt),
+                                            "+ ${item.pointsEarned} điểm",
                                             style: const TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.grey,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w800,
+                                              color: Color(0xFF2E7D32),
                                             ),
                                           ),
-                                          const SizedBox(width: 10),
-                                          const Icon(
-                                            Icons.verified_outlined,
-                                            size: 12,
-                                            color: Color(0xFF2E7D32),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            "$confidencePct%",
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              color: Color(0xFF2E7D32),
-                                              fontWeight: FontWeight.w600,
+                                          const SizedBox(height: 8),
+                                          InkWell(
+                                            onTap: () {
+                                              if (userId.isNotEmpty) {
+                                                _confirmDelete(
+                                                  context,
+                                                  userId,
+                                                  item.id,
+                                                );
+                                              }
+                                            },
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(4),
+                                              child: Icon(
+                                                Icons.delete_outline_rounded,
+                                                size: 18,
+                                                color: Colors.red.shade400,
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -693,43 +1056,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                     ],
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      "+ ${item.pointsEarned} điểm",
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w800,
-                                        color: Color(0xFF2E7D32),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    InkWell(
-                                      onTap: () {
-                                        if (userId.isNotEmpty) {
-                                          _confirmDelete(
-                                            context,
-                                            userId,
-                                            item.id,
-                                          );
-                                        }
-                                      },
-                                      borderRadius: BorderRadius.circular(6),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(4),
-                                        child: Icon(
-                                          Icons.delete_outline_rounded,
-                                          size: 18,
-                                          color: Colors.red.shade400,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                              ),
                             ),
                           );
                         }),

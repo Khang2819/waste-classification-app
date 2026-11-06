@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/utils/level_calculator.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../main/cubit/main_cubit.dart';
 import '../../domain/badge_entity.dart';
 import '../cubit/profile_cubit.dart';
@@ -23,6 +24,10 @@ class PersonScreen extends StatelessWidget {
     return BlocBuilder<ProfileCubit, ProfileState>(
       builder: (context, profileState) {
         final user = profileState is ProfileLoaded ? profileState.user : null;
+        final authState = context.watch<AuthBloc>().state;
+        final isAdmin =
+            (user?.isAdmin == true) ||
+            (authState is AuthAuthenticated && authState.user.isAdmin);
         final avatarUrl =
             (user?.avatar?.isNotEmpty ?? false) ? user!.avatar! : null;
         final displayName =
@@ -116,19 +121,21 @@ class PersonScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
-                      ProfileAccountSection(
-                        title: 'QUẢN LÝ HỆ THỐNG',
-                        items: [
-                          ProfileAccountSection.buildItem(
-                            icon: Icons.admin_panel_settings_rounded,
-                            title: 'Trang quản trị',
-                            subtitle:
-                                "Quản lý người dùng, điểm thu gom & phần thưởng",
-                            onTap: () {},
-                          ),
-                        ],
-                      ),
+                      if (isAdmin) ...[
+                        const SizedBox(height: 20),
+                        ProfileAccountSection(
+                          title: 'QUẢN LÝ HỆ THỐNG',
+                          items: [
+                            ProfileAccountSection.buildItem(
+                              icon: Icons.admin_panel_settings_rounded,
+                              title: 'Trang quản trị',
+                              subtitle:
+                                  "Quản lý người dùng, điểm thu gom & phần thưởng",
+                              onTap: () => context.push('/admin'),
+                            ),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 20),
                       SizedBox(
                         width: double.infinity,

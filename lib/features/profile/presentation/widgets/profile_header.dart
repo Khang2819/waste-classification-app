@@ -16,6 +16,8 @@ class ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasAvatar = avatarUrl.trim().isNotEmpty;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(top: 50, bottom: 40),
@@ -59,7 +61,17 @@ class ProfileHeader extends StatelessWidget {
                 ),
                 child: CircleAvatar(
                   radius: 46,
-                  backgroundImage: NetworkImage(avatarUrl),
+                  backgroundColor: Colors.white,
+                  backgroundImage:
+                      hasAvatar ? NetworkImage(avatarUrl.trim()) : null,
+                  child:
+                      !hasAvatar
+                          ? const Icon(
+                            Icons.person,
+                            color: Color(0xFF2E7D32),
+                            size: 46,
+                          )
+                          : null,
                 ),
               ),
               Positioned(
@@ -108,7 +120,7 @@ class ProfileHeader extends StatelessWidget {
                 const SizedBox(width: 6),
                 Text(
                   rankTitle,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,

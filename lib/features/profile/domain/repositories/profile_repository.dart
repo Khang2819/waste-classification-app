@@ -8,4 +8,15 @@ abstract class ProfileRepository {
     String? email,
     String? avatarUrl,
   });
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
+  Future<void> createPassword({
+    required String newPassword,
+  });
+  Future<void> sendPasswordResetEmail();
+  bool get isPasswordLinked;
+  bool get isGoogleLinked;
+  String? get currentUserEmail;
 }

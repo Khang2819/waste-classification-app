@@ -1,4 +1,8 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import 'package:waste_classification_app/core/services/cloudinary_service.dart';
 import 'package:waste_classification_app/features/history/data/models/history_models.dart';
 
 abstract class HistoryRemoteDataSources {
@@ -37,6 +41,24 @@ class HistoryRemoteDataSourcesImpl implements HistoryRemoteDataSources {
 
   @override
   Future<void> saveHistory(String userId, HistoryModels history) async {
+    String finalImagePath = history.imagePath;
+
+    // Tự động tải ảnh lên Cloudinary nếu là đường dẫn file cục bộ
+    if (finalImagePath.isNotEmpty && !finalImagePath.startsWith('http')) {
+      try {
+        final cleanPath = finalImagePath.replaceFirst('file://', '');
+        final file = File(cleanPath);
+        if (await file.exists()) {
+          final uploadedUrl = await CloudinaryService.uploadImage(file);
+          if (uploadedUrl != null && uploadedUrl.isNotEmpty) {
+            finalImagePath = uploadedUrl;
+          }
+        }
+      } catch (e) {
+        debugPrint('Tải ảnh phân loại lên Cloudinary không thành công: $e');
+      }
+    }
+
     final now = DateTime.now();
     // Tạo chuỗi ngày hôm nay dạng: 2026-10-20
     final todayStr =
@@ -73,13 +95,11 @@ class HistoryRemoteDataSourcesImpl implements HistoryRemoteDataSources {
         category: history.category,
         confidence: history.confidence,
         instruction: history.instruction,
-        imagePath: history.imagePath,
+        imagePath: finalImagePath,
         pointsEarned: pointsToAdd,
         createdAt: now,
       );
       transaction.set(historyDocRef, historyToSave.toFirestore());
-
-      // 2. Cập nhật thông tin User (chỉ tăng XP & GreenPoints nếu pointsToAdd > 0)
       final Map<String, dynamic> userUpdates = {
         'totalScanned': FieldValue.increment(1),
         'lastScanDate': todayStr,

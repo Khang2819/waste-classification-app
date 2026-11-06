@@ -1,11 +1,16 @@
+import 'dart:io';
+
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/utils/level_calculator.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
+import '../../../../features/auth/domain/entities/user.dart';
 import '../cubit/profile_cubit.dart';
 import '../cubit/profile_state.dart';
 
@@ -20,24 +25,96 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
 
-  bool _isInitialized = false;
+  File? _selectedAvatarFile;
+  User? _currentUser;
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLostData();
+    _initUserData();
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _phoneController.dispose();
     super.dispose();
   }
 
-  void _populateUserData(dynamic user) {
-    if (!_isInitialized && user != null) {
-      _nameController.text = user.fullName ?? '';
-      _emailController.text = user.email ?? '';
-      _isInitialized = true;
+  Future<void> _checkLostData() async {
+    try {
+      final picker = ImagePicker();
+      final response = await picker.retrieveLostData();
+      if (response.isEmpty) return;
+
+      if (response.file != null) {
+        setState(() {
+          _selectedAvatarFile = File(response.file!.path);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error retrieving lost data: $e');
+    }
+  }
+
+  void _initUserData() {
+    final cubit = context.read<ProfileCubit>();
+    final user = cubit.currentUser ?? cubit.state.user;
+    if (user != null) {
+      _currentUser = user;
+      _populateUserData(user);
+    } else {
+      final fbUser = fb_auth.FirebaseAuth.instance.currentUser;
+      if (fbUser != null) {
+        if (_nameController.text.trim().isEmpty) {
+          _nameController.text = fbUser.displayName ?? '';
+        }
+        if (_emailController.text.trim().isEmpty) {
+          _emailController.text = fbUser.email ?? '';
+        }
+        cubit.watchProfile(fbUser.uid);
+      }
+    }
+  }
+
+  void _populateUserData(User? user) {
+    if (user != null) {
+      if (_nameController.text.trim().isEmpty && user.fullName.isNotEmpty) {
+        _nameController.text = user.fullName;
+      }
+      if (_emailController.text.trim().isEmpty && user.email.isNotEmpty) {
+        _emailController.text = user.email;
+      }
+    }
+  }
+
+  Future<void> _pickAvatar(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 80,
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _selectedAvatarFile = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error picking avatar image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Không thể chọn ảnh: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -91,6 +168,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     onTap: () {
                       Navigator.pop(ctx);
+                      _pickAvatar(ImageSource.camera);
                     },
                   ),
                   ListTile(
@@ -111,8 +189,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     onTap: () {
                       Navigator.pop(ctx);
+                      _pickAvatar(ImageSource.gallery);
                     },
                   ),
+                  if (_selectedAvatarFile != null)
+                    ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.delete_outline_rounded,
+                          color: Colors.red.shade700,
+                        ),
+                      ),
+                      title: Text(
+                        'Hủy ảnh vừa chọn',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.red.shade700,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        setState(() {
+                          _selectedAvatarFile = null;
+                        });
+                      },
+                    ),
                 ],
               ),
             ),
@@ -144,14 +250,59 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ),
       ),
-      body: BlocBuilder<ProfileCubit, ProfileState>(
+      body: BlocConsumer<ProfileCubit, ProfileState>(
+        listener: (context, state) {
+          if (state is ProfileUpdating) {
+            setState(() => _isSaving = true);
+          } else if (state is ProfileUpdateSuccess) {
+            setState(() {
+              _isSaving = false;
+              _selectedAvatarFile = null;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: const Color(0xFF2E7D32),
+              ),
+            );
+            if (context.canPop()) {
+              context.pop();
+            }
+          } else if (state is ProfileError) {
+            setState(() => _isSaving = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
         builder: (context, state) {
-          final user = state is ProfileLoaded ? state.user : null;
+          // Ưu tiên user từ state mới nhất, nếu không giữ _currentUser trước đó
+          if (state.user != null) {
+            _currentUser = state.user;
+          }
+          final user = _currentUser;
           _populateUserData(user);
 
+          final fbUser = fb_auth.FirebaseAuth.instance.currentUser;
           final avatarUrl =
-              (user?.avatar?.isNotEmpty ?? false) ? user!.avatar! : null;
-          final rankTitle = LevelCalculator.getRankBadge(user?.totalXP ?? 0);
+              (user?.avatar?.isNotEmpty ?? false)
+                  ? user!.avatar!
+                  : (fbUser?.photoURL ?? '');
+
+          final totalXp = user?.totalXP ?? 0;
+          final greenPoints = user?.greenPoints ?? 0;
+          final totalScanned = user?.totalScanned ?? 0;
+          final rankTitle = LevelCalculator.getRankBadge(totalXp);
+
+          ImageProvider? avatarProvider;
+          if (_selectedAvatarFile != null) {
+            avatarProvider = FileImage(_selectedAvatarFile!);
+          } else if (avatarUrl.isNotEmpty) {
+            avatarProvider = NetworkImage(avatarUrl);
+          }
 
           return SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
@@ -185,12 +336,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               child: CircleAvatar(
                                 radius: 48,
                                 backgroundColor: Colors.white,
-                                backgroundImage:
-                                    avatarUrl != null
-                                        ? NetworkImage(avatarUrl)
-                                        : null,
+                                backgroundImage: avatarProvider,
                                 child:
-                                    avatarUrl == null
+                                    avatarProvider == null
                                         ? const Icon(
                                           Icons.person,
                                           color: Color(0xFF2E7D32),
@@ -199,11 +347,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                         : null,
                               ),
                             ),
+                            if (_isSaving)
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.black38,
+                                  ),
+                                  child: const Center(
+                                    child: SizedBox(
+                                      width: 28,
+                                      height: 28,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 3,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             Positioned(
                               bottom: 0,
                               right: 2,
                               child: GestureDetector(
-                                onTap: _showAvatarOptions,
+                                onTap: _isSaving ? null : _showAvatarOptions,
                                 child: Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
@@ -231,6 +401,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                           ],
                         ),
+                        if (_selectedAvatarFile != null) ...[
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.check_circle_rounded,
+                                size: 14,
+                                color: Color(0xFF2E7D32),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Đã chọn ảnh mới (Chưa lưu)',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.green.shade800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                         const SizedBox(height: 12),
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -289,7 +481,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           icon: Icons.eco_rounded,
                           color: const Color(0xFF2E7D32),
                           label: 'Điểm tích lũy',
-                          value: '${user?.greenPoints ?? 0} GP',
+                          value: '$greenPoints GP',
                         ),
                         Container(
                           width: 1,
@@ -300,7 +492,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           icon: Icons.qr_code_scanner_rounded,
                           color: const Color(0xFF0288D1),
                           label: 'Đã phân loại',
-                          value: '${user?.totalScanned ?? 0} lần',
+                          value: '$totalScanned lần',
                         ),
                         Container(
                           width: 1,
@@ -311,7 +503,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           icon: Icons.bolt_rounded,
                           color: Colors.amber.shade800,
                           label: 'Kinh nghiệm',
-                          value: '${user?.totalXP ?? 0} XP',
+                          value: '$totalXp XP',
                         ),
                       ],
                     ),
@@ -416,16 +608,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   CustomButton(
                     isLoading: _isSaving,
                     text: 'Lưu thay đổi',
-                    onPressed: () {
-                      if (_formKey.currentState!.validate() && user != null) {
-                        context.read<ProfileCubit>().updateProfile(
-                          userId: user.id,
-                          fullName: _nameController.text.trim(),
-                          email: _emailController.text.trim(),
-                          newAvatarFile: null,
-                        );
-                      }
-                    },
+                    onPressed: _isSaving
+                        ? null
+                        : () {
+                            final userId =
+                                user?.id ??
+                                fb_auth.FirebaseAuth.instance.currentUser?.uid;
+
+                            if (_formKey.currentState!.validate() &&
+                                userId != null &&
+                                userId.isNotEmpty) {
+                              context.read<ProfileCubit>().updateProfile(
+                                userId: userId,
+                                fullName: _nameController.text.trim(),
+                                email: _emailController.text.trim(),
+                                newAvatarFile: _selectedAvatarFile,
+                              );
+                            }
+                          },
                   ),
                   const SizedBox(height: 24),
                 ],

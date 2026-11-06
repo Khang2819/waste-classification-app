@@ -2,40 +2,44 @@ import 'package:equatable/equatable.dart';
 import '../../../../features/auth/domain/entities/user.dart';
 
 abstract class ProfileState extends Equatable {
-  const ProfileState();
-
-  @override
-  List<Object?> get props => [];
-}
-
-class ProfileInitial extends ProfileState {}
-
-class ProfileLoading extends ProfileState {}
-
-class ProfileLoaded extends ProfileState {
-  final User user;
-
-  const ProfileLoaded(this.user);
+  final User? user;
+  const ProfileState({this.user});
 
   @override
   List<Object?> get props => [user];
 }
 
-class ProfileUpdating extends ProfileState {}
+class ProfileInitial extends ProfileState {
+  const ProfileInitial({super.user});
+}
+
+class ProfileLoading extends ProfileState {
+  const ProfileLoading({super.user});
+}
+
+class ProfileLoaded extends ProfileState {
+  const ProfileLoaded(User user) : super(user: user);
+
+  @override
+  User get user => super.user!;
+}
+
+class ProfileUpdating extends ProfileState {
+  const ProfileUpdating({super.user});
+}
 
 class ProfileUpdateSuccess extends ProfileState {
   final String message;
-  const ProfileUpdateSuccess(this.message);
+  const ProfileUpdateSuccess(this.message, {super.user});
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, user];
 }
 
 class ProfileError extends ProfileState {
   final String message;
-
-  const ProfileError(this.message);
+  const ProfileError(this.message, {super.user});
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, user];
 }

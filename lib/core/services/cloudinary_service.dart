@@ -1,37 +1,50 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 class CloudinaryService {
-  static const String _cloudName = "your_cloud_name";
-  static const String _uploadPreset = "your_unsigned_preset";
+  static String get _cloudName =>
+      dotenv.env['_cloudName'] ??
+      dotenv.env['CLOUDINARY_CLOUD_NAME'] ??
+      "dmgq0yosy";
+
+  static String get _uploadPreset =>
+      dotenv.env['_uploadPreset'] ??
+      dotenv.env['CLOUDINARY_UPLOAD_PRESET'] ??
+      "smart_waste";
+
   static Future<String?> uploadImage(File imageFile) async {
     try {
+      final cloudName = _cloudName;
+      final uploadPreset = _uploadPreset;
       final uri = Uri.parse(
-        "https://api.cloudinary.com/v1_1/$_cloudName/image/upload",
+        "https://api.cloudinary.com/v1_1/$cloudName/image/upload",
       );
 
       final request =
           http.MultipartRequest("POST", uri)
-            ..fields['upload_preset'] = _uploadPreset
+            ..fields['upload_preset'] = uploadPreset
             ..files.add(
               await http.MultipartFile.fromPath('file', imageFile.path),
             );
 
-      final response = await request.send();
-
-      final resData = await http.Response.fromStream(response);
-      final jsonMap = jsonDecode(resData.body);
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      final jsonMap = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        return jsonMap['secure_url'];
+        return jsonMap['secure_url'] as String?;
       } else {
-        throw Exception(jsonMap['error']['message']);
+        final message =
+            jsonMap['error']?['message'] ??
+            'Lỗi tải ảnh lên Cloudinary (${response.statusCode})';
+        throw Exception(message);
       }
     } catch (e) {
       print("Upload error: $e");
-      return null;
+      rethrow;
     }
   }
 }
