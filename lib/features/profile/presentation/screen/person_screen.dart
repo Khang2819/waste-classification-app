@@ -115,9 +115,9 @@ class PersonScreen extends StatelessWidget {
                           ),
                           ProfileAccountSection.buildItem(
                             icon: Icons.card_giftcard_rounded,
-                            title: "Lịch sử đổi quà",
+                            title: "Túi quà & Lịch sử đổi quà",
                             subtitle: "Voucher và phần quà xanh đã đổi",
-                            onTap: () => context.push('/redeem'),
+                            onTap: () => context.push('/my_rewards'),
                           ),
                         ],
                       ),

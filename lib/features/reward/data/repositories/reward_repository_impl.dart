@@ -1,4 +1,5 @@
 import '../../domain/entities/reward_entity.dart';
+import '../../domain/entities/user_reward_item_entity.dart';
 import '../../domain/repositories/reward_repository.dart';
 import '../datasources/reward_remote_data_sources.dart';
 import '../models/reward_models.dart';
@@ -28,5 +29,21 @@ class RewardRepositoryImpl implements RewardRepository {
       imageUrl: reward.imageUrl,
     );
     return await remoteDataSource.redeemReward(userId: userId, reward: model);
+  }
+
+  @override
+  Stream<List<UserRewardItemEntity>> watchUserRedeemHistories(String userId) {
+    return remoteDataSource.watchUserRedeemHistories(userId);
+  }
+
+  @override
+  Future<void> markVoucherAsUsed({
+    required String userId,
+    required String historyId,
+  }) {
+    return remoteDataSource.markVoucherAsUsed(
+      userId: userId,
+      historyId: historyId,
+    );
   }
 }

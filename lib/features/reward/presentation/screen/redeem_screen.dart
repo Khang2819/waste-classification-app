@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/di/injection.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../profile/presentation/cubit/profile_cubit.dart';
 import '../../../profile/presentation/cubit/profile_state.dart';
 import '../../domain/entities/reward_entity.dart';
+import '../../domain/entities/user_reward_item_entity.dart';
+import '../../domain/repositories/reward_repository.dart';
 import '../cubit/reward_cubit.dart';
 
 class RedeemScreen extends StatefulWidget {
@@ -85,6 +88,87 @@ class _RedeemScreenState extends State<RedeemScreen> {
                 },
               )
               : null,
+    );
+  }
+
+  void _showRulesDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Row(
+              children: [
+                Icon(Icons.eco_rounded, color: Color(0xFF2E7D32)),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Thể lệ Đổi Quà Xanh',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            content: const Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '1. Tích lũy Điểm Xanh:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1B5E20),
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  '• Quét rác bằng AI hoặc mang rác tái chế đến điểm thu gom để được cộng Điểm Xanh.',
+                  style: TextStyle(fontSize: 13.5, height: 1.4),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  '2. Đổi quà & Nhận mã Voucher:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1B5E20),
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  '• Chọn phần quà yêu thích và bấm "Đổi ngay".\n• Quà đã đổi sẽ nằm trong mục "Tủ quà" kèm mã QR và mã Voucher riêng.',
+                  style: TextStyle(fontSize: 13.5, height: 1.4),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  '3. Sử dụng Voucher:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1B5E20),
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  '• Mở "Tủ quà", chọn Voucher để hiển thị mã QR cho nhân viên tại quầy hoặc sao chép mã ưu đãi.',
+                  style: TextStyle(fontSize: 13.5, height: 1.4),
+                ),
+              ],
+            ),
+            actions: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2E7D32),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Đã hiểu'),
+              ),
+            ],
+          ),
     );
   }
 
@@ -274,6 +358,11 @@ class _RedeemScreenState extends State<RedeemScreen> {
                   Expanded(child: Text(state.message)),
                 ],
               ),
+              action: SnackBarAction(
+                label: 'MỞ TỦ QUÀ',
+                textColor: Colors.amberAccent,
+                onPressed: () => context.push('/my_rewards'),
+              ),
               backgroundColor: const Color(0xFF2E7D32),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -331,36 +420,80 @@ class _RedeemScreenState extends State<RedeemScreen> {
             ),
           ),
           actions: [
-            IconButton(
-              onPressed: () {},
-              icon: Stack(
-                children: [
-                  const Icon(
-                    Icons.confirmation_number_outlined,
-                    size: 26,
-                    color: Colors.white,
-                  ),
-                  Positioned(
-                    top: -2,
-                    right: 0,
-                    child: Container(
-                      padding: EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.amber,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        '9',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            Builder(
+              builder: (context) {
+                final authState = context.watch<AuthBloc>().state;
+                final profileState = context.watch<ProfileCubit>().state;
+                final userId =
+                    profileState is ProfileLoaded
+                        ? profileState.user.id
+                        : (authState is AuthAuthenticated
+                            ? authState.user.id
+                            : '');
+
+                return IconButton(
+                  tooltip: 'Túi quà của tôi',
+                  onPressed: () => context.push('/my_rewards'),
+                  icon:
+                      userId.isEmpty
+                          ? const Icon(
+                            Icons.confirmation_number_outlined,
+                            size: 26,
+                            color: Colors.white,
+                          )
+                          : StreamBuilder<List<UserRewardItemEntity>>(
+                            stream: getIt<RewardRepository>()
+                                .watchUserRedeemHistories(userId),
+                            builder: (context, snapshot) {
+                              final unusedCount =
+                                  (snapshot.data ?? [])
+                                      .where((e) => !e.isUsed)
+                                      .length;
+                              return Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  const Icon(
+                                    Icons.confirmation_number_outlined,
+                                    size: 26,
+                                    color: Colors.white,
+                                  ),
+                                  if (unusedCount > 0)
+                                    Positioned(
+                                      top: -4,
+                                      right: -4,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 5,
+                                          vertical: 1.5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFFF9800),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          border: Border.all(
+                                            color: const Color(0xFF66BB6A),
+                                            width: 1.5,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          unusedCount > 99
+                                              ? '99+'
+                                              : '$unusedCount',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
+                          ),
+                );
+              },
             ),
           ],
         ),
@@ -379,9 +512,9 @@ class _RedeemScreenState extends State<RedeemScreen> {
                         state is ProfileLoaded ? state.user.greenPoints : 0;
 
                     return Container(
-                      padding: EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
                       width: double.infinity,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
@@ -397,7 +530,7 @@ class _RedeemScreenState extends State<RedeemScreen> {
                         ),
                       ),
                       child: Container(
-                        padding: EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
                           color: Colors.white.withValues(alpha: 0.12),
@@ -413,7 +546,6 @@ class _RedeemScreenState extends State<RedeemScreen> {
                               children: [
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
-
                                   children: [
                                     const Text(
                                       'Điểm khả dụng của bạn',
@@ -426,7 +558,7 @@ class _RedeemScreenState extends State<RedeemScreen> {
                                       children: [
                                         Text(
                                           '$points',
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontSize: 25,
                                             fontWeight: FontWeight.bold,
                                             color: Colors.white,
@@ -434,7 +566,7 @@ class _RedeemScreenState extends State<RedeemScreen> {
                                         ),
                                         const SizedBox(width: 10),
                                         Container(
-                                          padding: EdgeInsets.symmetric(
+                                          padding: const EdgeInsets.symmetric(
                                             horizontal: 8,
                                             vertical: 4,
                                           ),
@@ -446,14 +578,14 @@ class _RedeemScreenState extends State<RedeemScreen> {
                                               12,
                                             ),
                                           ),
-                                          child: Row(
+                                          child: const Row(
                                             children: [
                                               Icon(
                                                 Icons.eco_rounded,
                                                 color: Colors.white,
                                                 size: 16,
                                               ),
-                                              const SizedBox(width: 5),
+                                              SizedBox(width: 5),
                                               Text(
                                                 'Điểm Xanh',
                                                 style: TextStyle(
@@ -469,23 +601,39 @@ class _RedeemScreenState extends State<RedeemScreen> {
                                   ],
                                 ),
                                 GestureDetector(
-                                  onTap: () {},
+                                  onTap: () => context.push('/my_rewards'),
                                   child: Container(
-                                    padding: const EdgeInsets.all(10),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 10,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFFF9800),
-                                      borderRadius: BorderRadius.circular(10),
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.12,
+                                          ),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
                                     ),
                                     child: const Row(
                                       children: [
                                         Icon(
                                           Icons.confirmation_number_rounded,
                                           color: Colors.white,
+                                          size: 20,
                                         ),
-                                        SizedBox(width: 10),
+                                        SizedBox(width: 8),
                                         Text(
                                           "Tủ quà",
-                                          style: TextStyle(color: Colors.white),
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -563,8 +711,8 @@ class _RedeemScreenState extends State<RedeemScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: const [
+                          const Row(
+                            children: [
                               Icon(
                                 Icons.card_giftcard_outlined,
                                 color: Color(0xFF2E7D32),
@@ -580,7 +728,7 @@ class _RedeemScreenState extends State<RedeemScreen> {
                             ],
                           ),
                           TextButton.icon(
-                            onPressed: () {},
+                            onPressed: () => _showRulesDialog(context),
                             icon: const Icon(
                               Icons.help_outline_rounded,
                               size: 16,
@@ -700,8 +848,7 @@ class _RedeemScreenState extends State<RedeemScreen> {
                                     crossAxisCount: 2,
                                     crossAxisSpacing: 10,
                                     mainAxisSpacing: 10,
-                                    childAspectRatio:
-                                        0.62, // 👈 ô cao hơn để đủ chỗ cho nội dung
+                                    childAspectRatio: 0.62,
                                   ),
                               itemBuilder: (context, index) {
                                 final reward = filteredRewards[index];
@@ -729,8 +876,7 @@ class _RedeemScreenState extends State<RedeemScreen> {
                                               top: Radius.circular(20),
                                             ),
                                         child: AspectRatio(
-                                          aspectRatio:
-                                              1.3, // 👈 ảnh thấp hơn, không chiếm quá nhiều chiều cao
+                                          aspectRatio: 1.3,
                                           child:
                                               reward.imageUrl != null &&
                                                       reward

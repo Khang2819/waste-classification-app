@@ -13,6 +13,7 @@ import '../features/notifications/presentation/screen/notification_screen.dart';
 import '../features/profile/presentation/screen/account_security_screen.dart';
 import '../features/profile/presentation/screen/edit_profile_screen.dart';
 import '../features/profile/presentation/screen/leaderboard_screen.dart';
+import '../features/reward/presentation/screen/my_reward_bag_screen.dart';
 import '../features/reward/presentation/screen/redeem_screen.dart';
 import '../features/result_screen.dart';
 import '../features/scan/domain/entities/scan_entities.dart';
@@ -95,6 +96,10 @@ class AppRouter {
         GoRoute(
           path: '/redeem',
           builder: (context, state) => const RedeemScreen(),
+        ),
+        GoRoute(
+          path: '/my_rewards',
+          builder: (context, state) => const MyRewardBagScreen(),
         ),
         GoRoute(
           path: '/edit_profile',
